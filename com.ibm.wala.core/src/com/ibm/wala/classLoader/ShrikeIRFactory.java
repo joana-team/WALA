@@ -29,7 +29,6 @@ import com.ibm.wala.ssa.SSAOptions;
 import com.ibm.wala.ssa.ShrikeIndirectionData;
 import com.ibm.wala.ssa.SymbolTable;
 import com.ibm.wala.ssa.analysis.DeadAssignmentElimination;
-import com.ibm.wala.types.TypeReference;
 import com.ibm.wala.util.WalaRuntimeException;
 
 /**
