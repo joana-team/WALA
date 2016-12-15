@@ -22,8 +22,8 @@ import com.ibm.wala.ipa.callgraph.CallGraph;
 
 
 public final class CallGraphPruning {
-  
-  public CallGraphPruning(CallGraph cg) {
+
+	public CallGraphPruning(CallGraph cg) {
 		this.cg = cg;
 	}
 	
@@ -31,6 +31,7 @@ public final class CallGraphPruning {
 	private Set<CGNode> keep;
 	private LinkedList<CGNode> visited;
 	private List<CGNode> marked;
+	private List<CGNode> anchorNodes;
 	private int depth;
 	private CallGraph cg;
 	
@@ -54,7 +55,7 @@ public final class CallGraphPruning {
 	 * @return Set of relevant callgraph nodes.
 	 */
 	public Set<CGNode> findApplicationNodes(final int depth) {
-	  return findNodes(depth, ApplicationLoaderPolicy.INSTANCE);
+		return findNodes(depth, ApplicationLoaderPolicy.INSTANCE);
 	}
 	
 	/**
@@ -66,21 +67,51 @@ public final class CallGraphPruning {
 	 * @return set of relevant callgraph nodes
 	 */
 	public Set<CGNode> findNodes(final int depth, PruningPolicy policy) {
-	  if (DEBUG) {
-      System.out.println("Running optimization with depth: " + depth);
-   }
-   
-   this.marked = new LinkedList<>();
-   this.keep = new HashSet<>();
-   this.visited = new LinkedList<>();
-   this.depth = depth;
-   this.pruningPolicy = policy;
-   
-   dfs(cg.getFakeRootNode());
-   
-   return keep;
-	}
-	
+		if (DEBUG) {
+			System.out.println("Running optimization with depth: " + depth);
+		}
+
+    this.marked = new LinkedList<>();
+    this.anchorNodes = new LinkedList<>();
+    this.keep = new HashSet<>();
+    this.depth = depth;
+    this.pruningPolicy = policy;
+    
+    for (CGNode cgNode : cg) {
+      if (pruningPolicy.check(cgNode)) {
+      	anchorNodes.add(cgNode);
+      }
+    }
+
+    //dfs(cg.getFakeRootNode());
+    findTransitiveCallers();
+    
+    for (CGNode anchor : anchorNodes) {
+      addDepth(anchor);
+    }
+    
+    return keep;
+  }
+
+  private void findTransitiveCallers() {
+    LinkedList<CGNode> worklist = new LinkedList<>();
+    worklist.addAll(anchorNodes);
+    keep.addAll(anchorNodes);
+    
+    while (!worklist.isEmpty()) {
+      CGNode next = worklist.poll();
+      Iterator<CGNode> it = cg.getPredNodes(next);
+      while (it.hasNext()) {
+        CGNode n = it.next();
+        if (!keep.contains(n)) {
+          keep.add(n);
+          worklist.addLast(n);
+        }
+      }
+    }
+  }
+
+  @SuppressWarnings("unused")
 	private void dfs(CGNode root) {
 		
 		visited.addLast(root);		
@@ -100,9 +131,9 @@ public final class CallGraphPruning {
 		
 		if (pruningPolicy.check(root)) {
 			keep.addAll(visited);
-			addDepth(root);
+			anchorNodes.add(root);
 		}
-		visited.removeLast();		
+		visited.removeLast();
 	}
 	
 	private void addDepth(CGNode node) {
@@ -121,13 +152,13 @@ public final class CallGraphPruning {
 			}
 			
 			if (DEBUG) {
-				 System.out.println("Tiefe: " + B);
+				 System.out.println("Nodes added through depth: " + B);
 			}
 			
 			keep.addAll(B);
 			A.clear();
 			A.addAll(B);
-			B.clear();			
+			B.clear();
 			i--;
 		}
 	}
