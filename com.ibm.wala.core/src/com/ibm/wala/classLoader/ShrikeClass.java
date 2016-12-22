@@ -21,12 +21,15 @@ import com.ibm.wala.shrikeCT.AnnotationsReader.AnnotationType;
 import com.ibm.wala.shrikeCT.ClassConstants;
 import com.ibm.wala.shrikeCT.ClassReader;
 import com.ibm.wala.shrikeCT.ClassReader.AttrIterator;
+import com.ibm.wala.shrikeCT.EnclosingMethodReader;
 import com.ibm.wala.shrikeCT.InnerClassesReader;
 import com.ibm.wala.shrikeCT.InvalidClassFileException;
 import com.ibm.wala.shrikeCT.SignatureReader;
 import com.ibm.wala.shrikeCT.SourceFileReader;
 import com.ibm.wala.shrikeCT.TypeAnnotationsReader;
 import com.ibm.wala.types.ClassLoaderReference;
+import com.ibm.wala.types.Descriptor;
+import com.ibm.wala.types.MethodReference;
 import com.ibm.wala.types.TypeName;
 import com.ibm.wala.types.TypeReference;
 import com.ibm.wala.types.annotations.Annotation;
@@ -38,6 +41,7 @@ import com.ibm.wala.util.debug.Assertions;
 import com.ibm.wala.util.shrike.ShrikeClassReaderHandle;
 import com.ibm.wala.util.strings.Atom;
 import com.ibm.wala.util.strings.ImmutableByteArray;
+import com.ibm.wala.util.warnings.Warnings;
 
 /**
  * A class read from Shrike
@@ -337,6 +341,26 @@ public final class ShrikeClass extends JVMClass<IClassLoader> {
     }
     return result;
   }
+  
+  private EnclosingMethodReader getEnclosingMethodReader() throws InvalidClassFileException {
+    ClassReader r = reader.get();
+    ClassReader.AttrIterator attrs = new ClassReader.AttrIterator();
+    r.initClassAttributeIterator(attrs);
+
+    // search for the desired attribute
+    EnclosingMethodReader result = null;
+    try {
+      for (; attrs.isValid(); attrs.advance()) {
+        if (attrs.getName().equals("EnclosingMethod")) {
+          result = new EnclosingMethodReader(attrs);
+          break;
+        }
+      }
+    } catch (InvalidClassFileException e) {
+      Assertions.UNREACHABLE();
+    }
+    return result;
+  }
 
   SourceFileReader getSourceFileReader() {
     ClassReader.AttrIterator attrs = new ClassReader.AttrIterator();
@@ -507,7 +531,50 @@ public final class ShrikeClass extends JVMClass<IClassLoader> {
     }
     return null;
   }
+  
+  public IMethod getEnclosingMethod() throws InvalidClassFileException {
+    MethodReference reference = getEnclosingMethodReference();
+    if (reference == null) return null;
+    
+    final IClass enclosingClass = getEnclosingMethodClass();
+    return enclosingClass.getMethod(reference.getSelector());
+  }
+  
+  public IClass getEnclosingMethodClass() throws InvalidClassFileException {
+    TypeReference reference = getEnclosingMethodClassReference();
+    if (reference == null) return null;
+    
+    final TypeName name = reference.getName();
+    final IClass klass = loader.lookupClass(name);
+    if (klass == null) Warnings.add(ClassNotFoundWarning.create(ImmutableByteArray.make(name.toString())));
+    return klass;
+  }
 
+  public MethodReference getEnclosingMethodReference() throws InvalidClassFileException {
+    EnclosingMethodReader emr = getEnclosingMethodReader();
+    if (emr == null) return null;
+    
+    String enclosingClass = emr.getEnclosingClass();
+    String name = emr.getEnclosingMethodName();
+    String type = emr.getEnclosingMethodType();
+    assert ((name == null) == (type == null));
+    
+    if (name == null) return null;
+    
+    Atom nameA = Atom.findOrCreateUnicodeAtom(name);
+    ImmutableByteArray desc = ImmutableByteArray.make(type);
+    Descriptor D = Descriptor.findOrCreate(getClassLoader().getLanguage(), desc);
+    return MethodReference.findOrCreate(TypeReference.findOrCreate(getClassLoader().getReference(), "L" + enclosingClass), nameA, D);
+  }
+  
+  public TypeReference getEnclosingMethodClassReference() throws InvalidClassFileException {
+    EnclosingMethodReader emr = getEnclosingMethodReader();
+    if (emr == null) return null;
+    
+    String enclosingClass = emr.getEnclosingClass();
+    return TypeReference.findOrCreate(getClassLoader().getReference(), "L" + enclosingClass);
+  }
+  
   @Override
   public Module getContainer() {
     return reader.getModuleEntry().getContainer();

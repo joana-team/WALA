@@ -127,7 +127,7 @@ public abstract class BytecodeClass<T extends IClassLoader> implements IClass {
   /**
    * A warning for when we get a class not found exception
    */
-  private static class ClassNotFoundWarning extends Warning {
+  static class ClassNotFoundWarning extends Warning {
 
     final ImmutableByteArray className;
 

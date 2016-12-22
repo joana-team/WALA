@@ -304,6 +304,13 @@ public final class ClassReader implements ClassConstants {
   public int getInt(int i) {
     return (bytes[i] << 24) + ((bytes[i + 1] & 0xFF) << 16) + ((bytes[i + 2] & 0xFF) << 8) + (bytes[i + 3] & 0xFF);
   }
+  
+  /**
+   * @return the unsigned 32-bit value at offset i in the class data
+   */
+  public long getUInt(int i) {
+    return ((bytes[i] & 0xFF) << 24) + ((bytes[i + 1] & 0xFF) << 16) + ((bytes[i + 2] & 0xFF) << 8) + (bytes[i + 3] & 0xFF);
+  }
 
   /**
    * @return the unsigned 16-bit value at offset i in the class data
