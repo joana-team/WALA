@@ -12,6 +12,7 @@
 package com.ibm.wala.cfg.exc.intra;
 
 import java.util.Collection;
+import java.util.Map.Entry;
 
 import com.ibm.wala.dataflow.graph.AbstractMeetOperator;
 import com.ibm.wala.fixpoint.AbstractVariable;
@@ -59,10 +60,12 @@ public class NullPointerState extends AbstractVariable<NullPointerState> {
     // Add what we know about the parameters (if we know anything about them). 
     // They are the first vars by convention.
     if (parameterState != null) {
-      for (int i = 0; i < parameterState.getStates().size(); i++){
-        assert parameterState.getState(i) != null;
-        vars[i + 1] = parameterState.getState(i);
-        assert vars[i + 1] != null;
+      for (Entry<Integer, State> e : parameterState.getStates().entrySet()) {
+        final Integer i = e.getKey();
+        final State s = e.getValue();
+        assert s != null;
+        assert i != null;
+        vars[i + 1] = s;
       }
     }
   }
