@@ -516,7 +516,8 @@ public abstract class AbstractCFG<I, T extends IBasicBlock<I>> implements Contro
    */
   @Override
   public void removeNodeAndEdges(T N) throws UnimplementedError {
-    Assertions.UNREACHABLE();
+    removeAllIncidentEdges(N);
+    removeNode(N);
   }
 
   /*
@@ -524,7 +525,13 @@ public abstract class AbstractCFG<I, T extends IBasicBlock<I>> implements Contro
    */
   @Override
   public void removeNode(T n) throws UnimplementedError {
-    Assertions.UNREACHABLE();
+    if (entry().equals(n) || exit().equals(n)) throw new IllegalArgumentException();
+    final int number = getNumber(n);
+    nodeManager.removeNode(n);
+    normalToExit.clear(number);
+    exceptionalToExit.clear(number);
+    fallThru.clear(number);
+    catchBlocks.clear(number);
   }
 
   /*
@@ -581,7 +588,15 @@ public abstract class AbstractCFG<I, T extends IBasicBlock<I>> implements Contro
    */
   @Override
   public void removeAllIncidentEdges(T node) throws UnimplementedError {
-    Assertions.UNREACHABLE();
+    final int number = getNumber(node);
+    if (exit.equals(node)) {
+      normalToExit.clearAll();
+      exceptionalToExit.clearAll();
+    }
+    fallThru.clear(number);
+    normalEdgeManager.removeAllIncidentEdges(node);
+    exceptionalEdgeManager.removeAllIncidentEdges(node);
+    exceptionalSuccessors.set(number, null);
   }
 
   /*

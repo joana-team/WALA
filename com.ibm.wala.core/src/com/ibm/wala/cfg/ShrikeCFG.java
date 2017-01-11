@@ -74,6 +74,7 @@ public class ShrikeCFG extends AbstractCFG<IInstruction, ShrikeCFG.BasicBlock> i
     init();
     computeI2BMapping();
     computeEdges();
+    pruneUnreachableCatchBlocks();
     
     if (DEBUG) {
       System.err.println(this);
@@ -132,6 +133,21 @@ public class ShrikeCFG extends AbstractCFG<IInstruction, ShrikeCFG.BasicBlock> i
       } else {
         b.computeOutgoingEdges();
       }
+    }
+  }
+  
+  /**
+   * Prune unreachable catch blocks
+   */
+  private void pruneUnreachableCatchBlocks() {
+    ArrayList<BasicBlock> toRemove = new ArrayList<>();
+    for (BasicBlock b : this) {
+      if (b.isCatchBlock() && this.getPredNodeCount(b) == 0) {
+        toRemove.add(b);
+      }
+    }
+    for (BasicBlock b : toRemove) {
+      this.removeAllIncidentEdges(b);
     }
   }
 
