@@ -20,6 +20,7 @@ import com.ibm.wala.classLoader.IBytecodeMethod;
 import com.ibm.wala.classLoader.IClass;
 import com.ibm.wala.classLoader.IClassLoader;
 import com.ibm.wala.classLoader.IMethod;
+import com.ibm.wala.fixedpoint.impl.Worklist;
 import com.ibm.wala.ipa.cha.IClassHierarchy;
 import com.ibm.wala.shrikeBT.ExceptionHandler;
 import com.ibm.wala.shrikeBT.IInstruction;
@@ -32,8 +33,12 @@ import com.ibm.wala.types.MethodReference;
 import com.ibm.wala.types.TypeReference;
 import com.ibm.wala.util.collections.ArrayIterator;
 import com.ibm.wala.util.collections.HashSetFactory;
+import com.ibm.wala.util.collections.Heap;
 import com.ibm.wala.util.debug.Assertions;
 import com.ibm.wala.util.graph.impl.NodeWithNumber;
+import com.ibm.wala.util.intset.BitVector;
+import com.ibm.wala.util.intset.BitVectorIntSet;
+import com.ibm.wala.util.intset.MutableIntSet;
 import com.ibm.wala.util.shrike.ShrikeUtil;
 import com.ibm.wala.util.warnings.Warning;
 import com.ibm.wala.util.warnings.Warnings;
@@ -74,7 +79,7 @@ public class ShrikeCFG extends AbstractCFG<IInstruction, ShrikeCFG.BasicBlock> i
     init();
     computeI2BMapping();
     computeEdges();
-    pruneUnreachableCatchBlocks();
+    pruneUnreachableBlocks();
     
     if (DEBUG) {
       System.err.println(this);
@@ -137,18 +142,46 @@ public class ShrikeCFG extends AbstractCFG<IInstruction, ShrikeCFG.BasicBlock> i
   }
   
   /**
-   * Prune unreachable catch blocks
+   * "prune" unreachable Blocks.
+   * Since actually removing those blocks invalidates assumptions on ShrikeCFG made elsewhere (e.g.,
+   * some code implicitly assumes that the BB numbers of present blocks are continuous between 0 and
+   * getMaxNumber()), we do not actually remove unreachable blocks, but only remove all their in- and
+   * (most importantly) out-going edges.
    */
-  private void pruneUnreachableCatchBlocks() {
-    ArrayList<BasicBlock> toRemove = new ArrayList<>();
-    for (BasicBlock b : this) {
-      if (b.isCatchBlock() && this.getPredNodeCount(b) == 0) {
-        toRemove.add(b);
+  private void pruneUnreachableBlocks() {
+    class Worklist extends Heap<BasicBlock> {
+      public Worklist() {
+        super(100);
+      }
+
+      @Override
+      protected boolean compareElements(BasicBlock elt1, BasicBlock elt2) {
+        return elt1.getGraphNodeId() < elt2.getGraphNodeId();
       }
     }
-    for (BasicBlock b : toRemove) {
-      this.removeAllIncidentEdges(b);
+    
+    final Worklist workList = new Worklist();
+    workList.insert(entry());
+    
+    final MutableIntSet keep = new BitVectorIntSet(new BitVector(this.getMaxNumber()));
+    keep.add(entry().getGraphNodeId());
+    
+    while (!workList.isEmpty()) {
+      final BasicBlock b = workList.take();
+      final Iterator<BasicBlock> successors = this.getSuccNodes(b);
+      while (successors.hasNext()) {
+        final BasicBlock successor = successors.next();
+        if (keep.add(successor.getGraphNodeId())) {
+          workList.insert(successor);
+        }
+      }
     }
+    for (BasicBlock b : this) {
+      if (!keep.contains(b.getGraphNodeId())) {
+        this.removeAllIncidentEdges(b);
+      }
+    }
+
   }
 
   private void makeBasicBlocks() {
