@@ -527,6 +527,8 @@ public class SparseIntSet implements IntSet {
       return containsAny((SparseIntSet) set);
     } else if (set instanceof BimodalMutableIntSet) {
       return set.containsAny(this);
+    } else if (set instanceof MutableSharedBitVectorIntSet) {
+      return set.containsAny(this);
     } else {
       for (int i = 0; i < size; i++) {
         if (set.contains(elements[i])) {
