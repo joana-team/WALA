@@ -185,21 +185,24 @@ abstract public class BitVectorBase<T extends BitVectorBase> implements Cloneabl
       throw new IllegalArgumentException("illegal start: " + start);
     }
     int word = subscript(start);
-    int bit = (1 << (start & LOW_MASK));
+    if (word >= bits.length) {
+      return -1;
+    }
+    int shift = (start & LOW_MASK);
+    int w = bits[word] >> shift;
+    if (w != 0) {
+      return start + Long.numberOfTrailingZeros(w);
+    }
+    start = (start + BITS_PER_UNIT) & ~LOW_MASK;
+    word++;
     while (word < bits.length) {
       if (bits[word] != 0) {
-        do {
-          if ((bits[word] & bit) != 0)
-            return start;
-          bit <<= 1;
-          start++;
-        } while (bit != 0);
+        return start + Long.numberOfTrailingZeros(bits[word]);
       } else {
-        start += (BITS_PER_UNIT - (start & LOW_MASK));
+        start += BITS_PER_UNIT;
       }
 
       word++;
-      bit = 1;
     }
 
     return -1;
