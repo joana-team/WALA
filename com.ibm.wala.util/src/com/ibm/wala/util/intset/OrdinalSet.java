@@ -13,7 +13,6 @@ package com.ibm.wala.util.intset;
 import java.util.Collection;
 import java.util.Iterator;
 
-import com.ibm.wala.util.collections.EmptyIterator;
 import com.ibm.wala.util.collections.Iterator2Collection;
 import com.ibm.wala.util.debug.Assertions;
 
@@ -34,54 +33,54 @@ public class OrdinalSet<T> implements Iterable<T> {
   }
 
   private OrdinalSet() {
-    S = null;
-    mapping = null;
+    this.S = EmptyIntSet.instance;
+    this.mapping = MutableMapping.make();
   }
 
   public OrdinalSet(IntSet S, OrdinalSetMapping<T> mapping) {
-    this.S = S;
-    this.mapping = mapping;
+    if (S == null) {
+      this.S = EmptyIntSet.instance;
+    } else {
+      this.S = S;
+    }
+    if (mapping == null) {
+      this.mapping = MutableMapping.make();
+    } else {
+      this.mapping = mapping;
+    }
   }
 
   public boolean containsAny(OrdinalSet<T> that) {
     if (that == null) {
       throw new IllegalArgumentException("null that");
     }
-    if (S == null || that.S == null) {
-      return false;
-    }
     return S.containsAny(that.S);
   }
 
   public int size() {
-    return (S == null) ? 0 : S.size();
+    return S.size();
   }
 
   @Override
   public Iterator<T> iterator() {
-    if (S == null) {
-      return EmptyIterator.instance();
-    } else {
+    return new Iterator<T>() {
+      IntIterator it = S.intIterator();
 
-      return new Iterator<T>() {
-        IntIterator it = S.intIterator();
+      @Override
+      public boolean hasNext() {
+        return it.hasNext();
+      }
 
-        @Override
-        public boolean hasNext() {
-          return it.hasNext();
-        }
+      @Override
+      public T next() {
+        return mapping.getMappedObject(it.next());
+      }
 
-        @Override
-        public T next() {
-          return mapping.getMappedObject(it.next());
-        }
-
-        @Override
-        public void remove() {
-          Assertions.UNREACHABLE();
-        }
-      };
-    }
+      @Override
+      public void remove() {
+        Assertions.UNREACHABLE();
+      }
+    };
   }
 
   /**
@@ -95,9 +94,7 @@ public class OrdinalSet<T> implements Iterable<T> {
     if (A.size() != 0 && B.size() != 0) {
       assert A.mapping.equals(B.mapping);
     }
-    if (A.S == null || B.S == null) {
-      return new OrdinalSet<>(null, A.mapping);
-    }
+    
     IntSet isect = A.S.intersection(B.S);
     return new OrdinalSet<>(isect, A.mapping);
   }
@@ -106,14 +103,14 @@ public class OrdinalSet<T> implements Iterable<T> {
    * @return true if the contents of two sets are equal
    */
   public static <T> boolean equals(OrdinalSet<T> a, OrdinalSet<T> b) {
-    if ((a == null && b == null) || a == b || (a.mapping == b.mapping && a.S == b.S)) {
+    if (a == b || (a.mapping == b.mapping && a.S == b.S)) {
       return true;
     }
-
+    
     assert a != null && b != null;
     if (a.size() == b.size()) {
-      if (a.mapping == b.mapping || (a.mapping != null && b.mapping != null && a.mapping.equals(b.mapping))) {
-        return a.S == b.S || (a.S != null && b.S != null && a.S.sameValue(b.S));
+      if (a.mapping == b.mapping || a.mapping.equals(b.mapping)) {
+        return a.S == b.S || a.S.sameValue(b.S);
       }
     }
     
@@ -135,15 +132,16 @@ public class OrdinalSet<T> implements Iterable<T> {
     if (B == null) {
       throw new IllegalArgumentException("B is null");
     }
-    if (A.size() != 0 && B.size() != 0) {
-      assert A.mapping.equals(B.mapping);
+    
+    if (A == EMPTY) {
+      if (B == EMPTY) return B;
+      return new OrdinalSet<>(B.S, B.mapping);
     }
-
-    if (A.S == null) {
-      return (B.S == null) ? OrdinalSet.<T> empty() : new OrdinalSet<>(B.S, B.mapping);
-    } else if (B.S == null) {
+    if (B == EMPTY) {
       return new OrdinalSet<>(A.S, A.mapping);
     }
+    
+    assert A.mapping.equals(B.mapping);
 
     IntSet union = A.S.union(B.S);
     return new OrdinalSet<>(union, A.mapping);
@@ -171,7 +169,7 @@ public class OrdinalSet<T> implements Iterable<T> {
    * @return true iff this set contains object
    */
   public boolean contains(T object) {
-    if (this == EMPTY || S == null || object == null) {
+    if (this == EMPTY || object == null) {
       return false;
     }
     int index = mapping.getMappedIndex(object);

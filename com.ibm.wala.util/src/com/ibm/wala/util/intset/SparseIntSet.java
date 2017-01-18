@@ -173,6 +173,8 @@ public class SparseIntSet implements IntSet {
       return that.sameValue(this);
     } else if (that instanceof MutableSharedBitVectorIntSet) {
       return sameValue(((MutableSharedBitVectorIntSet) that).makeSparseCopy());
+    } else if (that instanceof EmptyIntSet) {
+      return size == 0;
     } else {
       Assertions.UNREACHABLE(that.getClass().toString());
       return false;
