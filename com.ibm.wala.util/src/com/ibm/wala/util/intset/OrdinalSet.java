@@ -177,7 +177,7 @@ public class OrdinalSet<T> implements Iterable<T> {
   }
 
   public boolean isEmpty() {
-    return size() == 0;
+    return S.isEmpty();
   }
 
   /**
