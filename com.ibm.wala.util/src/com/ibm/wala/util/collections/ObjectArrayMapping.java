@@ -51,10 +51,11 @@ public class ObjectArrayMapping<T> implements OrdinalSetMapping<T> {
 
   @Override
   public int getMappedIndex(Object o) {
-    if (map.get(o) == null) {
+    final Integer otherIndex = map.get(o);
+    if (otherIndex == null) {
       return -1;
     }
-    return map.get(o).intValue();
+    return otherIndex.intValue();
   }
 
   @Override
