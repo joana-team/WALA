@@ -31,6 +31,8 @@ public class DelegatingNumberedNodeManager<T extends INodeWithNumber> implements
   private int maxNumber = -1;
 
   private int numberOfNodes = 0;
+  
+  private boolean continous = true;
 
   /*
    * @see com.ibm.wala.util.graph.NumberedGraph#getNumber(com.ibm.wala.util.graph.Node)
@@ -68,6 +70,47 @@ public class DelegatingNumberedNodeManager<T extends INodeWithNumber> implements
   @Override
   public Iterator<T> iterator() {
     final INodeWithNumber[] arr = nodes;
+    final int nrOfNodes = numberOfNodes;
+    if (continous) {
+      return new Iterator<T>() {
+        int next = -1;
+        {
+          advance();
+        }
+
+        void advance() {
+          assert !(next + 1 < nrOfNodes && arr[next + 1] == null);
+          if (next + 1 < nrOfNodes) {
+            next++;
+          } else {
+            next = -1;
+          }
+        }
+
+        @Override
+        public boolean hasNext() {
+          return next != -1;
+        }
+
+        @Override
+        @SuppressWarnings("unchecked")
+        public T next() {
+          if (hasNext()) {
+            int r = next;
+            advance();
+            return (T) arr[r];
+          } else {
+            return null;
+          }
+        }
+
+        @Override
+        public void remove() {
+          Assertions.UNREACHABLE();
+        }
+      };
+    }
+    
     return new Iterator<T>() {
       int nextCounter = -1;
       {
@@ -134,16 +177,23 @@ public class DelegatingNumberedNodeManager<T extends INodeWithNumber> implements
       N.setGraphNodeId(maxNumber);
       number = maxNumber;
     } else {
+      if (number > maxNumber + 1) {
+        continous = false;
+      }
       if (number > maxNumber) {
         maxNumber = number;
       }
     }
     ensureCapacity(number);
-    if (nodes[number] != null && nodes[number] != N) {
+    INodeWithNumber current = nodes[number];
+    if (current != null && current != N) {
       Assertions.UNREACHABLE("number: " + number + " N: " + N + " nodes[number]: " + nodes[number]);
     }
+    if (current == null) {
+      numberOfNodes++;
+    }
     nodes[number] = N;
-    numberOfNodes++;
+    assert (!continous || numberOfNodes == maxNumber + 1);
   }
 
   /**
@@ -173,6 +223,7 @@ public class DelegatingNumberedNodeManager<T extends INodeWithNumber> implements
     }
     if (nodes[number] != null) {
       nodes[number] = null;
+      if (number != numberOfNodes + 1) continous = false;
       numberOfNodes--;
     }
   }
