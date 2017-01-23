@@ -323,6 +323,9 @@ public class MutableSparseIntSet extends SparseIntSet implements MutableIntSet {
 		if (set == null) {
 			throw new IllegalArgumentException("set == null");
 		}
+		if (set.isEmpty()) {
+		  return false;
+		}
 		if (set instanceof SparseIntSet) {
 			return addAll((SparseIntSet) set);
 		} else {
