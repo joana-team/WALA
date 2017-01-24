@@ -30,6 +30,7 @@ import com.ibm.wala.dalvik.classLoader.DexIRFactory;
 import com.ibm.wala.dalvik.util.AndroidEntryPointLocator;
 import com.ibm.wala.dalvik.util.AndroidEntryPointLocator.LocatorFlags;
 import com.ibm.wala.ipa.callgraph.AnalysisCacheImpl;
+import com.ibm.wala.dalvik.util.AndroidEntryPointManager;
 import com.ibm.wala.ipa.callgraph.AnalysisOptions;
 import com.ibm.wala.ipa.callgraph.AnalysisOptions.ReflectionOptions;
 import com.ibm.wala.ipa.callgraph.AnalysisScope;
@@ -135,7 +136,8 @@ public class DalvikCallGraphTestBase extends DynamicCallGraphTestBase {
 		flags.add(LocatorFlags.INCLUDE_CALLBACKS);
 		flags.add(LocatorFlags.EP_HEURISTIC);
 		flags.add(LocatorFlags.CB_HEURISTIC);
-		AndroidEntryPointLocator eps = new AndroidEntryPointLocator(flags);
+		AndroidEntryPointManager manager = new AndroidEntryPointManager();
+		AndroidEntryPointLocator eps = new AndroidEntryPointLocator(manager, flags);
 		List<? extends Entrypoint> es = eps.getEntryPoints(cha);
     return es;
   }

@@ -94,12 +94,12 @@ public final /* singleton */ class AndroidModelClass extends SyntheticClass {
     public static final TypeReference ANDROID_MODEL_CLASS = TypeReference.findOrCreate(
             ClassLoaderReference.Primordial, TypeName.string2TypeName("Lcom/ibm/wala/AndroidModelClass"));
     private IClassHierarchy cha;
-
-    public static AndroidModelClass getInstance(IClassHierarchy cha) {
+    private final AndroidEntryPointManager manager;
+    public static AndroidModelClass getInstance(AndroidEntryPointManager manager, IClassHierarchy cha) {
         IClass android = cha.lookupClass(ANDROID_MODEL_CLASS);
         AndroidModelClass mClass;
         if (android == null) {
-        	mClass = new AndroidModelClass(cha);
+        	mClass = new AndroidModelClass(manager, cha);
         } else if (!(android instanceof AndroidModelClass)) {
         	throw new IllegalArgumentException(String.format("android model class does not have expected type %s, but %s!", AndroidModelClass.class, android.getClass().toString()));
         } else {
@@ -108,8 +108,9 @@ public final /* singleton */ class AndroidModelClass extends SyntheticClass {
         return mClass;
     }
 
-    private AndroidModelClass(IClassHierarchy cha) {
+    private AndroidModelClass(AndroidEntryPointManager manager, IClassHierarchy cha) {
         super(ANDROID_MODEL_CLASS, cha);
+        this.manager = manager;
         this.addMethod(this.clinit());
         this.cha = cha;
         this.cha.addClass(this);
@@ -125,11 +126,11 @@ public final /* singleton */ class AndroidModelClass extends SyntheticClass {
         final VolatileMethodSummary clinit = new VolatileMethodSummary(new MethodSummary(clinitRef));
         clinit.setStatic(true);
         final TypeSafeInstructionFactory instructionFactory = new TypeSafeInstructionFactory(cha);
-        
-        final Set<TypeReference> components = AndroidEntryPointManager.getComponents();
+
+        final Set<TypeReference> components = manager.getComponents();
         int ssaNo = 1;
 
-        if (AndroidEntryPointManager.MANAGER.doFlatComponents()) {
+        if (manager.doFlatComponents()) {
             for (TypeReference component : components) {
                 final SSAValue instance = new SSAValue(ssaNo++, component, clinitRef);
                 { // New

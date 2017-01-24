@@ -126,7 +126,7 @@ public class AndroidModel /* makes SummarizedMethod */
         implements IClassHierarchyDweller {
     private final Atom name = Atom.findOrCreateAsciiAtom("AndroidModel");
     public MethodReference mRef;
-
+    protected AndroidEntryPointManager manager;
     protected IClassHierarchy cha;
     protected AnalysisOptions options;
     protected IAnalysisCacheView cache;
@@ -152,14 +152,15 @@ public class AndroidModel /* makes SummarizedMethod */
     protected boolean built;
     protected SummarizedMethod model;
 
-    public AndroidModel(final IClassHierarchy cha, final AnalysisOptions options, final IAnalysisCacheView cache) {
+    public AndroidModel(final AndroidEntryPointManager manager, final IClassHierarchy cha, final AnalysisOptions options, final IAnalysisCacheView cache) {
+        this.manager = manager;
         this.options = options;
         this.cha = cha;
         this.cache = cache;
         this.built = false;
         this.scope = options.getAnalysisScope();
 
-        this.instanceBehavior = AndroidEntryPointManager.MANAGER.getInstantiationBehavior(cha);
+        this.instanceBehavior = manager.getInstantiationBehavior(cha);
 
     }
 
@@ -175,7 +176,7 @@ public class AndroidModel /* makes SummarizedMethod */
     protected void build(Atom name) throws CancelException {
         final List<AndroidEntryPoint> restrictedEntries = new ArrayList<>();
 
-        for (AndroidEntryPoint ep: AndroidEntryPointManager.MANAGER.getEntries()) {
+        for (AndroidEntryPoint ep: manager.getEntries()) {
             if (selectEntryPoint(ep)) {
                 restrictedEntries.add(ep);
             }
@@ -219,8 +220,8 @@ public class AndroidModel /* makes SummarizedMethod */
        
         if (this.klass == null) {
             // add to cha
-            
-            this.klass = AndroidModelClass.getInstance(cha);
+
+            this.klass = AndroidModelClass.getInstance(this.manager, cha);
             cha.addClass(this.klass);
         }
 
@@ -234,7 +235,7 @@ public class AndroidModel /* makes SummarizedMethod */
         this.paramManager = new SSAValueManager(modelAcc);
 
         final Selector selector = this.mRef.getSelector();
-        final AndroidModelClass mClass = AndroidModelClass.getInstance(cha);
+        final AndroidModelClass mClass = AndroidModelClass.getInstance(this.manager, cha);
         if (mClass.containsMethod(selector)) {
             
             assert (mClass.getMethod(selector) instanceof SummarizedMethod);
@@ -244,13 +245,13 @@ public class AndroidModel /* makes SummarizedMethod */
         this.body = new VolatileMethodSummary(new MethodSummary(this.mRef));
         this.body.setStatic(true);
 
-        this.labelSpecial = AndroidEntryPointManager.MANAGER.makeModelBehavior(this.body, new TypeSafeInstructionFactory(cha),
+        this.labelSpecial = manager.makeModelBehavior(this.body, new TypeSafeInstructionFactory(cha),
                 this.paramManager, entrypoints);
 
-        this.monitor = AndroidEntryPointManager.MANAGER.getProgressMonitor();
+        this.monitor = manager.getProgressMonitor();
         this.maxProgress = entrypoints.size();
 
-        AndroidModel.doBoot &= AndroidEntryPointManager.MANAGER.getDoBootSequence();
+        AndroidModel.doBoot &= manager.getDoBootSequence();
 
         // BUILD
         this.monitor.beginTask("Building " + name, this.maxProgress);
@@ -343,7 +344,7 @@ public class AndroidModel /* makes SummarizedMethod */
         int currentProgress = 0;
 
         final TypeSafeInstructionFactory tsif = new TypeSafeInstructionFactory(this.cha);
-        final Instantiator instantiator = new Instantiator (this.body, tsif, this.paramManager, this.cha, this.mRef, this.scope);
+        final Instantiator instantiator = new Instantiator (this.manager, this.body, tsif, this.paramManager, this.cha, this.mRef, this.scope);
         boolean enteredASection = false;
         //
         //  Add preparing code to the model
@@ -608,7 +609,7 @@ public class AndroidModel /* makes SummarizedMethod */
         }
         final VolatileMethodSummary redirect = new VolatileMethodSummary(new MethodSummary(asMethod));
         redirect.setStatic(false);
-        final Instantiator instantiator = new Instantiator(redirect, instructionFactory, pm, this.cha, asMethod, this.scope);
+        final Instantiator instantiator = new Instantiator(this.manager, redirect, instructionFactory, pm, this.cha, asMethod, this.scope);
         final Parameter self;
         { 
             self = acc.getThisAs(caller);
@@ -643,9 +644,9 @@ public class AndroidModel /* makes SummarizedMethod */
                 allActivities.add(inAsMethod);
             } else {
                 final Atom fdName = activityType.getName().getClassName();
-                final AndroidModelClass mClass = AndroidModelClass.getInstance(cha);
+                final AndroidModelClass mClass = AndroidModelClass.getInstance(this.manager, cha);
 
-                if (AndroidEntryPointManager.MANAGER.doFlatComponents()) {
+                if (manager.doFlatComponents()) {
                     if (mClass.getField(fdName) != null) {
                         final IField field = mClass.getField(fdName);
                         final int instPC = redirect.getNextProgramCounter();
@@ -863,7 +864,7 @@ public class AndroidModel /* makes SummarizedMethod */
             asMethod = MethodReference.findOrCreate(clazz, methodName, descr);
         }
 
-        final AndroidModelClass mClass = AndroidModelClass.getInstance(cha);
+        final AndroidModelClass mClass = AndroidModelClass.getInstance(this.manager, cha);
 
         if (mClass.containsMethod(asMethod.getSelector())) {
             // There's already an encap for this method
@@ -881,14 +882,14 @@ public class AndroidModel /* makes SummarizedMethod */
 
         final List<SSAValue> params = new ArrayList<>();
         { // Collect Params
-            final FlatInstantiator instantiator = new FlatInstantiator(encap, instructionFactory, pm, this.cha, asMethod, this.scope);
+            final FlatInstantiator instantiator = new FlatInstantiator(manager, encap, instructionFactory, pm, this.cha, asMethod, this.scope);
 
             for (int i = 0; i < model.getNumberOfParameters(); ++i) {
                 final TypeReference argT = model.getParameterType(i);
                 final SSAValue arg;
 
-                if  ( ( AndroidEntryPointManager.MANAGER.doFlatComponents()) &&  
-                            (AndroidComponent.isAndroidComponent(argT, cha)) ) { 
+                if  ( ( manager.doFlatComponents()) &&
+                            (AndroidComponent.isAndroidComponent(argT, cha)) ) {
                     // Get / Put filed in AndroidModelClass for Android-Components
                     final Atom fdName = argT.getName().getClassName();
 

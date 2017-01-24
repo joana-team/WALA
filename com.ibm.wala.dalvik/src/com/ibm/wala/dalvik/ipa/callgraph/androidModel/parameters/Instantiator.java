@@ -94,10 +94,11 @@ public class Instantiator implements IInstantiator {
     final TypeSafeInstructionFactory instructionFactory;
     final SSAValueManager pm;
     final MethodReference scope;
-    final AnalysisScope analysisScope; 
-
-    public Instantiator(final VolatileMethodSummary body, final TypeSafeInstructionFactory instructionFactory,
+    final AnalysisScope analysisScope;
+    final AndroidEntryPointManager manager;
+    public Instantiator(final AndroidEntryPointManager manager, final VolatileMethodSummary body, final TypeSafeInstructionFactory instructionFactory,
             final SSAValueManager pm, final IClassHierarchy cha, final MethodReference scope, final AnalysisScope analysisScope) {
+        this.manager = manager;
         this.body = body;
         this.instructionFactory = instructionFactory;
         this.pm = pm;
@@ -139,7 +140,7 @@ public class Instantiator implements IInstantiator {
 
         { // Special type?
             if (SpecializedInstantiator.understands(T)) {
-                final SpecializedInstantiator sInst = new SpecializedInstantiator(body, instructionFactory, pm,
+                final SpecializedInstantiator sInst = new SpecializedInstantiator(manager, body, instructionFactory, pm,
                         cha, scope, analysisScope, this);
                 return sInst.createInstance(T, asManaged, key, seen);
             }
@@ -168,8 +169,8 @@ public class Instantiator implements IInstantiator {
      
         { // Try fetch Android-Components from AndroidModelClass
             if (com.ibm.wala.dalvik.util.AndroidComponent.isAndroidComponent(T, cha)) {
-                if ( AndroidEntryPointManager.MANAGER.doFlatComponents()) {
-                    final AndroidModelClass mClass = AndroidModelClass.getInstance(cha);
+                if (manager.doFlatComponents()) {
+                    final AndroidModelClass mClass = AndroidModelClass.getInstance(this.manager, cha);
                     final Atom fdName = T.getName().getClassName();
 
                     if (mClass.getField(fdName) != null) {

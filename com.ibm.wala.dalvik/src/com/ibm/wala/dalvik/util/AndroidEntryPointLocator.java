@@ -120,14 +120,15 @@ public final class AndroidEntryPointLocator {
 
     private final static List<AndroidPossibleEntryPoint> possibleEntryPoints = new ArrayList<>();
     protected final Set<LocatorFlags> flags;
-
-    public AndroidEntryPointLocator(final Set<LocatorFlags> flags) {
+    private final AndroidEntryPointManager manager;
+    public AndroidEntryPointLocator(AndroidEntryPointManager manager, final Set<LocatorFlags> flags) {
+        this.manager = manager;
         if (flags == null) {
             this.flags = EnumSet.noneOf(LocatorFlags.class);
         } else {
             this.flags = flags;
         }
-        this.mon = AndroidEntryPointManager.MANAGER.getProgressMonitor();
+        this.mon = this.manager.getProgressMonitor();
 
         populatePossibleEntryPoints();
     }

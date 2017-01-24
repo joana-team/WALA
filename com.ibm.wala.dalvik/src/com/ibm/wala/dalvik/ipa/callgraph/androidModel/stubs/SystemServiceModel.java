@@ -47,6 +47,7 @@ import com.ibm.wala.dalvik.ipa.callgraph.androidModel.AndroidModel;
 import com.ibm.wala.dalvik.ipa.callgraph.androidModel.AndroidModelClass;
 import com.ibm.wala.dalvik.ipa.callgraph.androidModel.parameters.Instantiator;
 import com.ibm.wala.dalvik.ipa.callgraph.impl.AndroidEntryPoint;
+import com.ibm.wala.dalvik.util.AndroidEntryPointManager;
 import com.ibm.wala.dalvik.util.AndroidTypes;
 import com.ibm.wala.ipa.callgraph.AnalysisOptions;
 import com.ibm.wala.ipa.callgraph.IAnalysisCacheView;
@@ -95,10 +96,10 @@ public class SystemServiceModel extends AndroidModel {
         return false;
     }
 
-    public SystemServiceModel(final IClassHierarchy cha, final AnalysisOptions options, final IAnalysisCacheView cache, 
+    public SystemServiceModel(final AndroidEntryPointManager manager, final IClassHierarchy cha, final AnalysisOptions options, final IAnalysisCacheView cache,
             Atom target) {
-        super(cha, options, cache);
-        
+        super(manager, cha, options, cache);
+
         if (target == null) {
             throw new IllegalArgumentException("The target requested to create an SystemServiceModel for was null");
         }
@@ -110,7 +111,7 @@ public class SystemServiceModel extends AndroidModel {
 
     //@Override
     private void register(SummarizedMethod model) {
-        AndroidModelClass mClass = AndroidModelClass.getInstance(cha);
+        AndroidModelClass mClass = AndroidModelClass.getInstance(this.manager, cha);
         if (!(mClass.containsMethod(model.getSelector()))) {
             mClass.addMethod(model);
         }
@@ -135,10 +136,10 @@ public class SystemServiceModel extends AndroidModel {
                             AndroidTypes.ContextName}, TypeName.string2TypeName("Ljava/lang/Object"));
 
         this.mRef = MethodReference.findOrCreate(AndroidModelClass.ANDROID_MODEL_CLASS, name, descr);
-        final Selector selector = new Selector(name, descr); 
+        final Selector selector = new Selector(name, descr);
 
         // Assert not registered yet
-        final AndroidModelClass mClass = AndroidModelClass.getInstance(this.cha);
+        final AndroidModelClass mClass = AndroidModelClass.getInstance(this.manager, this.cha);
         if (mClass.containsMethod(selector)) {
             this.model = (SummarizedMethod) mClass.getMethod(selector);
             return;
@@ -150,7 +151,7 @@ public class SystemServiceModel extends AndroidModel {
          
          populate(null);
 
-         this.klass = AndroidModelClass.getInstance(this.cha);
+         this.klass = AndroidModelClass.getInstance(this.manager, this.cha);
 
          this.model = new SummarizedMethod(this.mRef, this.body.getMethodSummary(), this.klass) {
             @Override
@@ -193,7 +194,7 @@ public class SystemServiceModel extends AndroidModel {
         final VolatileMethodSummary body = this.body;
         final ParameterAccessor pAcc = new ParameterAccessor(this.mRef, /* hasImplicitThis */ false);
         final SSAValueManager pm = new SSAValueManager(pAcc);
-        final Instantiator instantiator = new Instantiator(body, instructionFactory, pm, cha, mRef, scope); 
+        final Instantiator instantiator = new Instantiator(this.manager, body, instructionFactory, pm, cha, mRef, scope); 
 
         //final SSAValue context = pAcc.firstOf(AndroidTypes.ContextName);
         final SSAValue retVal;

@@ -43,6 +43,7 @@ package com.ibm.wala.dalvik.ipa.callgraph.propagation.cfa;
 import java.util.Map;
 
 import com.ibm.wala.classLoader.IClass;
+import com.ibm.wala.dalvik.util.AndroidEntryPointManager;
 import com.ibm.wala.ipa.callgraph.propagation.ConstantKey;
 import com.ibm.wala.ipa.callgraph.propagation.InstanceKey;
 import com.ibm.wala.util.collections.HashMapFactory;
@@ -57,9 +58,13 @@ import com.ibm.wala.util.strings.StringStuff;
  *  @author Tobias Blaschke &lt;code@tobiasblaschke.de&gt;
  */
 /*package*/ class IntentMap {
+    private final AndroidEntryPointManager manager;
     private final Map<InstanceKey, Intent> seen = HashMapFactory.make();
     private final Map<Intent, Intent> immutables = HashMapFactory.make();
 
+    public IntentMap(AndroidEntryPointManager manager) {
+        this.manager = manager;
+    }
     public Intent findOrCreateImmutable(final Intent intent) {
         if (immutables.containsKey(intent)) {
             final Intent immutable = immutables.get(intent);
@@ -91,7 +96,7 @@ import com.ibm.wala.util.strings.StringStuff;
         if (seen.containsKey(key)) {
             throw new IndexOutOfBoundsException("There may only be one Intent for " + key);
         }
-        final Intent intent = new Intent(action);
+        final Intent intent = new Intent(this.manager, action);
         seen.put(key, intent);
         return intent;
     }
@@ -103,7 +108,7 @@ import com.ibm.wala.util.strings.StringStuff;
         if (seen.containsKey(key)) {
             throw new IndexOutOfBoundsException("There may only be one Intent for " + key);
         }
-        final Intent intent = new Intent(action);
+        final Intent intent = new Intent(this.manager, action);
         seen.put(key, intent);
         return intent;
     }
@@ -115,7 +120,7 @@ import com.ibm.wala.util.strings.StringStuff;
         if (seen.containsKey(key)) {
             throw new IndexOutOfBoundsException("There may only be one Intent for " + key);
         }
-        final Intent intent = new Intent();
+        final Intent intent = new Intent(this.manager);
         seen.put(key, intent);
         return intent;
     }
@@ -179,7 +184,7 @@ import com.ibm.wala.util.strings.StringStuff;
             }
             return intent;
         } else {
-            
+
             final Intent intent = create(key, action);
             return intent;
         }

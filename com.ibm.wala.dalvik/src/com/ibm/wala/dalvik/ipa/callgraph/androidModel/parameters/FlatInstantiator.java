@@ -57,6 +57,7 @@ import com.ibm.wala.classLoader.CallSiteReference;
 import com.ibm.wala.classLoader.IClass;
 import com.ibm.wala.classLoader.IMethod;
 import com.ibm.wala.classLoader.NewSiteReference;
+import com.ibm.wala.dalvik.util.AndroidEntryPointManager;
 import com.ibm.wala.ipa.callgraph.AnalysisScope;
 import com.ibm.wala.ipa.cha.IClassHierarchy;
 import com.ibm.wala.ipa.summaries.VolatileMethodSummary;
@@ -84,7 +85,7 @@ import com.ibm.wala.util.ssa.TypeSafeInstructionFactory;
  */
 public class FlatInstantiator implements IInstantiator {
     private static final Logger logger = LoggerFactory.getLogger(FlatInstantiator.class);
-
+    final AndroidEntryPointManager manager;
     final IClassHierarchy cha;
     final VolatileMethodSummary body;
     final TypeSafeInstructionFactory instructionFactory;
@@ -93,8 +94,9 @@ public class FlatInstantiator implements IInstantiator {
     final AnalysisScope analysisScope;
     final int maxDepth;
 
-    public FlatInstantiator(final VolatileMethodSummary body, final TypeSafeInstructionFactory instructionFactory,
+    public FlatInstantiator(final AndroidEntryPointManager manager, final VolatileMethodSummary body, final TypeSafeInstructionFactory instructionFactory,
             final SSAValueManager pm, final IClassHierarchy cha, final MethodReference scope, final AnalysisScope analysisScope) {
+        this.manager = manager;
         this.body = body;
         this.instructionFactory = instructionFactory;
         this.pm = pm;
@@ -104,9 +106,10 @@ public class FlatInstantiator implements IInstantiator {
         this.maxDepth = 1;
     }
 
-    public FlatInstantiator(final VolatileMethodSummary body, final TypeSafeInstructionFactory instructionFactory,
+    public FlatInstantiator(final AndroidEntryPointManager manager, final VolatileMethodSummary body, final TypeSafeInstructionFactory instructionFactory,
             final SSAValueManager pm, final IClassHierarchy cha, final MethodReference scope, final AnalysisScope analysisScope,
             final int maxDepth) {
+        this.manager = manager;
         this.body = body;
         this.instructionFactory = instructionFactory;
         this.pm = pm;
@@ -159,7 +162,7 @@ public class FlatInstantiator implements IInstantiator {
         }
 
         { // Special type?
-            final SpecializedInstantiator sInst = new SpecializedInstantiator(body, instructionFactory, pm,
+            final SpecializedInstantiator sInst = new SpecializedInstantiator(manager, body, instructionFactory, pm,
                     cha, scope, analysisScope, this);
             if (SpecializedInstantiator.understands(T)) {
                 return sInst.createInstance(T, asManaged, key, seen, currentDepth);

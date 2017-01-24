@@ -42,6 +42,7 @@ package com.ibm.wala.dalvik.ipa.callgraph.androidModel;
 
 import com.ibm.wala.dalvik.ipa.callgraph.impl.AndroidEntryPoint;
 import com.ibm.wala.dalvik.util.AndroidComponent;
+import com.ibm.wala.dalvik.util.AndroidEntryPointManager;
 import com.ibm.wala.ipa.callgraph.AnalysisOptions;
 import com.ibm.wala.ipa.callgraph.IAnalysisCacheView;
 import com.ibm.wala.ipa.cha.IClassHierarchy;
@@ -93,10 +94,10 @@ public class MiniModel extends AndroidModel {
         return descr;
     }
 
-    public MiniModel(final IClassHierarchy cha, final AnalysisOptions options, final IAnalysisCacheView cache, 
+    public MiniModel(final AndroidEntryPointManager manager, final IClassHierarchy cha, final AnalysisOptions options, final IAnalysisCacheView cache,
             final AndroidComponent forCompo) {
-        super(cha, options, cache);
-    
+        super(manager, cha, options, cache);
+
         this.forCompo = forCompo;
         this.name = Atom.findOrCreateAsciiAtom(forCompo.getPrettyName() + "Model");
 
@@ -115,11 +116,11 @@ public class MiniModel extends AndroidModel {
             this.register(super.model);
         }
 
-        return super.model; 
+        return super.model;
     }
 
     private void register(SummarizedMethod model) {
-        AndroidModelClass mClass = AndroidModelClass.getInstance(cha);
+        AndroidModelClass mClass = AndroidModelClass.getInstance(this.manager, cha);
         if (!(mClass.containsMethod(model.getSelector()))) {
             mClass.addMethod(super.model);
         }

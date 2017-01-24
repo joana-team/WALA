@@ -64,9 +64,9 @@ public class AndroidSettingFactory {
         public IntentType getType() {
             return Intent.IntentType.INTERNAL_TARGET;
         }
-        public InternalIntent(String action) { super(action); }
-        public InternalIntent(Atom action) { super(action); }
-        public InternalIntent(Atom action, Atom uri) { super(action, uri); }
+        public InternalIntent(final AndroidEntryPointManager manager, String action) { super(manager, action); }
+        public InternalIntent(final AndroidEntryPointManager manager, Atom action) { super(manager, action); }
+        public InternalIntent(final AndroidEntryPointManager manager, Atom action, Atom uri) { super(manager, action, uri); }
         @Override   // Force clash!
         public int hashCode() { return super.hashCode(); }
         @Override   // Force clash!
@@ -78,9 +78,9 @@ public class AndroidSettingFactory {
         public IntentType getType() {
             return Intent.IntentType.UNKNOWN_TARGET;
         }
-        public UnknownIntent(String action) { super(action); }
-        public UnknownIntent(Atom action) { super(action); }
-        public UnknownIntent(Atom action, Atom uri) { super(action, uri); }
+        public UnknownIntent(final AndroidEntryPointManager manager, String action) { super(manager, action); }
+        public UnknownIntent(final AndroidEntryPointManager manager, Atom action) { super(manager, action); }
+        public UnknownIntent(final AndroidEntryPointManager manager, Atom action, Atom uri) { super(manager, action, uri); }
         @Override   // Force clash!
         public int hashCode() { return super.hashCode(); }
         @Override   // Force clash!
@@ -92,9 +92,9 @@ public class AndroidSettingFactory {
         public IntentType getType() {
             return Intent.IntentType.EXTERNAL_TARGET;
         }
-        public ExternalIntent(String action) { super(action); }
-        public ExternalIntent(Atom action) { super(action); }
-        public ExternalIntent(Atom action, Atom uri) { super(action, uri); }
+        public ExternalIntent(final AndroidEntryPointManager manager, String action) { super(manager, action); }
+        public ExternalIntent(final AndroidEntryPointManager manager, Atom action) { super(manager, action); }
+        public ExternalIntent(final AndroidEntryPointManager manager, Atom action, Atom uri) { super(manager, action, uri); }
         @Override   // Force clash!
         public int hashCode() { return super.hashCode(); }
         @Override   // Force clash!
@@ -106,9 +106,9 @@ public class AndroidSettingFactory {
         public IntentType getType() {
             return Intent.IntentType.STANDARD_ACTION;
         }
-        public StandardIntent(String action) { super(action); }
-        public StandardIntent(Atom action) { super(action); }
-        public StandardIntent(Atom action, Atom uri) { super(action, uri); }
+        public StandardIntent(final AndroidEntryPointManager manager, String action) { super(manager, action); }
+        public StandardIntent(final AndroidEntryPointManager manager, Atom action) { super(manager, action); }
+        public StandardIntent(final AndroidEntryPointManager manager, Atom action, Atom uri) { super(manager, action, uri); }
         @Override   // Force clash!
         public int hashCode() { return super.hashCode(); }
         @Override   // Force clash!
@@ -120,9 +120,9 @@ public class AndroidSettingFactory {
         public IntentType getType() {
             return Intent.IntentType.IGNORE;
         }
-        public IgnoreIntent(String action) { super(action); }
-        public IgnoreIntent(Atom action) { super(action); }
-        public IgnoreIntent(Atom action, Atom uri) { super(action, uri); }
+        public IgnoreIntent(final AndroidEntryPointManager manager, String action) { super(manager, action); }
+        public IgnoreIntent(final AndroidEntryPointManager manager, Atom action) { super(manager, action); }
+        public IgnoreIntent(final AndroidEntryPointManager manager, Atom action, Atom uri) { super(manager, action, uri); }
         @Override   // Force clash!
         public int hashCode() { return super.hashCode(); }
         @Override   // Force clash!
@@ -139,7 +139,7 @@ public class AndroidSettingFactory {
      *  @throws IllegalArgumentException If name was null or starts with a dot and pack is null
      *  TODO: Check Target-Types
      */
-    public static Intent intent(String pack, String name, String uri) {
+    public static Intent intent(final AndroidEntryPointManager manager, String pack, String name, String uri) {
         if ((name == null) || (name.isEmpty())) {
             throw new IllegalArgumentException ("name may not be null or empty");
         }
@@ -175,21 +175,21 @@ public class AndroidSettingFactory {
         }
         if (type == Intent.IntentType.INTERNAL_TARGET) {
             if (uri != null) {
-                ret = new InternalIntent(action, mUri);
+                ret = new InternalIntent(manager, action, mUri);
             } else {
-                ret = new InternalIntent(action);
+                ret = new InternalIntent(manager, action);
             }
         } else if (type == Intent.IntentType.STANDARD_ACTION) {
             if (uri != null) {
-                ret = new StandardIntent(action, mUri);
+                ret = new StandardIntent(manager, action, mUri);
             } else {
-                ret = new StandardIntent(action);
+                ret = new StandardIntent(manager, action);
             }
         } else {
             if (uri != null) {
-                ret = new StandardIntent(action, mUri);
+                ret = new StandardIntent(manager, action, mUri);
             } else {
-                ret = new StandardIntent(action);
+                ret = new StandardIntent(manager, action);
             }
         }
 
@@ -199,25 +199,25 @@ public class AndroidSettingFactory {
     //
     //  Short-Hand functions follow...
     //
-    public static Intent intent(String fullyQualifiedAction, String uri) {
+    public static Intent intent(AndroidEntryPointManager manager, String fullyQualifiedAction, String uri) {
         if (fullyQualifiedAction.startsWith(".")) {
-            String pack = AndroidEntryPointManager.MANAGER.getPackage();
+            String pack = manager.getPackage();
             if (pack != null) {
-                return intent(pack, fullyQualifiedAction, uri);
+                return intent(manager, pack, fullyQualifiedAction, uri);
             } else {
             throw new IllegalArgumentException("The action " + fullyQualifiedAction + " is not fully qualified and the application package is unknown! Use " +
                     " intent(String pack, String name, String uri) to build the intent!");
             }
         } else {
-            return intent(null, fullyQualifiedAction, uri);
+            return intent(manager, null, fullyQualifiedAction, uri);
         }
     }
 
-    public static Intent intent(String fullyQualifiedAction) {
+    public static Intent intent(final AndroidEntryPointManager manager, String fullyQualifiedAction) {
         if (fullyQualifiedAction.startsWith(".")) {
             throw new IllegalArgumentException("The action " + fullyQualifiedAction + " is not fully qualified! Use " +
                     " intent(String pack, String name, null) to build the intent!");
         }
-        return intent(null, fullyQualifiedAction, null);
+        return intent(manager, null, fullyQualifiedAction, null);
     }
 }

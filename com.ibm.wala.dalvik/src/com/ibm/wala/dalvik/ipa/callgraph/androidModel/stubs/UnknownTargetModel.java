@@ -104,14 +104,14 @@ public class UnknownTargetModel  extends AndroidModel {
     protected boolean selectEntryPoint(AndroidEntryPoint ep) {
         return false;
     }
-   
+
     /**
      *  @param  target  Component Type, may be null: No restrictions are imposed on AndroidModel then
      */
-    public UnknownTargetModel(final IClassHierarchy cha, final AnalysisOptions options, final IAnalysisCacheView cache, 
+    public UnknownTargetModel(final AndroidEntryPointManager manager, final IClassHierarchy cha, final AnalysisOptions options, final IAnalysisCacheView cache,
             AndroidComponent target) {
-        super(cha, options, cache);
-        
+        super(manager, cha, options, cache);
+
         if (target == null) {   // TODO: Enable
             throw new IllegalArgumentException("The component type requested to create an UnknownTargetModel for was null");
         }
@@ -126,7 +126,7 @@ public class UnknownTargetModel  extends AndroidModel {
 
     //@Override
     private void register(SummarizedMethod model) {
-        AndroidModelClass mClass = AndroidModelClass.getInstance(cha);
+        AndroidModelClass mClass = AndroidModelClass.getInstance(this.manager, cha);
         if (!(mClass.containsMethod(model.getSelector()))) {
             mClass.addMethod(model);
         }
@@ -151,7 +151,7 @@ public class UnknownTargetModel  extends AndroidModel {
         {   // Check if this Application has components, that implement target. If not we don't
             // have to build a MiniModel.
             doMini = false;
-            for (final AndroidEntryPoint ep : AndroidEntryPointManager.MANAGER.getEntries()) {
+            for (final AndroidEntryPoint ep : this.manager.getEntries()) {
                 if (ep.belongsTo(this.target)) {
                     doMini = true;
                     break;
@@ -160,9 +160,9 @@ public class UnknownTargetModel  extends AndroidModel {
         }
        
         if (doMini) {
-            miniModel = new MiniModel(this.cha, this.options, this.cache, this.target);
+            miniModel = new MiniModel(this.manager, this.cha, this.options, this.cache, this.target);
         }
-        externalModel = new ExternalModel(this.cha, this.options, this.cache, this.target);
+        externalModel = new ExternalModel(this.manager, this.cha, this.options, this.cache, this.target);
 
         final Descriptor descr;
 //        final Selector selector;
@@ -197,7 +197,7 @@ public class UnknownTargetModel  extends AndroidModel {
         } // */
 
         {   // Set some properties of the later method
-            this.klass = AndroidModelClass.getInstance(this.cha);
+            this.klass = AndroidModelClass.getInstance(this.manager, this.cha);
             this.mRef = MethodReference.findOrCreate(AndroidModelClass.ANDROID_MODEL_CLASS, name, descr);
             this.body = new VolatileMethodSummary(new MethodSummary(this.mRef));
             this.body.setStatic(true);
@@ -246,7 +246,7 @@ public class UnknownTargetModel  extends AndroidModel {
         final TypeSafeInstructionFactory instructionFactory = new TypeSafeInstructionFactory(this.cha);
         final ParameterAccessor pAcc = new ParameterAccessor(this.mRef, /* hasImplicitThis */ false);
         final SSAValueManager pm = new SSAValueManager(pAcc);
-        final Instantiator instantiator = new Instantiator(this.body, instructionFactory, pm, this.cha, this.mRef, this.scope);
+        final Instantiator instantiator = new Instantiator(this.manager, this.body, instructionFactory, pm, this.cha, this.mRef, this.scope);
 
         if (doMini) { // Call a MiniModel
             //final MiniModel miniModel = new MiniModel(this.cha, this.options, this.cache, this.target);

@@ -108,27 +108,29 @@ public class Intent implements ContextItem, Comparable<Intent> {
     private Explicit explicit = Explicit.UNSET;
     private AndroidComponent targetCompontent;  // Activity, Service, ...
     private boolean immutable = false;
-
-    public Intent() {
+    private final AndroidEntryPointManager manager;
+    public Intent(final AndroidEntryPointManager manager) {
         this.action = null;
+        this.manager = manager;
     }
-    public Intent(String action) {
-        this(Atom.findOrCreateAsciiAtom(action));
+    public Intent(final AndroidEntryPointManager manager, String action) {
+        this(manager, Atom.findOrCreateAsciiAtom(action));
     }
-    public Intent(Atom action) {
-        this(action, null);
+    public Intent(final AndroidEntryPointManager manager, Atom action) {
+        this(manager, action, null);
     }
-    public Intent(Atom action, Atom uri) {
+    public Intent(final AndroidEntryPointManager manager, Atom action, Atom uri) {
+        this.manager = manager;
         this.action = action;
         this.uri = uri;
         this.type = null;   // Delay computation upon it's need
         this.targetCompontent = null;
     }
-    public Intent(TypeName action, Atom uri) {
-         this(Atom.findOrCreateAsciiAtom(action.toString()), uri);
+    public Intent(final AndroidEntryPointManager manager, TypeName action, Atom uri) {
+         this(manager, Atom.findOrCreateAsciiAtom(action.toString()), uri);
     }
-    public Intent(TypeName action) {
-        this(action, null);
+    public Intent(final AndroidEntryPointManager manager, TypeName action) {
+        this(manager, action, null);
     }
 
     public void setExplicit() {
@@ -155,7 +157,7 @@ public class Intent implements ContextItem, Comparable<Intent> {
 
     @Override
     public Intent clone() {
-        final Intent clone = new Intent();
+        final Intent clone = new Intent(this.manager);
         clone.action = this.action; // OK here?
         clone.uri = this.uri;
         clone.type = this.type;
@@ -237,7 +239,7 @@ public class Intent implements ContextItem, Comparable<Intent> {
                 this.type = IntentType.STANDARD_ACTION;
             } else if (isInternal(this)) {
                 this.type = IntentType.INTERNAL_TARGET;
-            } else if (isExternal(this)) {
+            } else if (isExternal()) {
                 this.type = IntentType.EXTERNAL_TARGET;
             } else {
                 this.type = IntentType.UNKNOWN_TARGET;
@@ -293,7 +295,7 @@ public class Intent implements ContextItem, Comparable<Intent> {
      *
      *  Use {@link #isExternal(boolean)} instead.
      */
-    private static boolean isExternal(Intent intent) {  // XXX: This may loop forever!
+    private boolean isExternal() {  // XXX: This may loop forever!
         /*final Intent override = AndroidEntryPointManager.MANAGER.getIntent(intent);
 
         logger.warn("Intent.isExternal(Intent) is an unsafe fallback!");
@@ -302,18 +304,18 @@ public class Intent implements ContextItem, Comparable<Intent> {
             return override.isExternal(true);   // The isExternal defined later not this one!
         }*/
 
-        if ((intent.action == null ) || (intent.action.equals(UNBOUND))) {
+        if ((this.action == null ) || (this.action.equals(UNBOUND))) {
             return false; // Is Unknown
         }
 
-        String pack = AndroidEntryPointManager.MANAGER.guessPackage();
-        
-       
+        String pack = this.manager.guessPackage();
+
+
         if (pack == null) {
             // Unknown so not selected as external
             return false;
         }
-        return (! (intent.action.toString().startsWith("L" + pack) || intent.action.toString().startsWith(pack)));
+        return (! (this.action.toString().startsWith("L" + pack) || this.action.toString().startsWith(pack)));
     }
 
     /**
@@ -446,7 +448,7 @@ public class Intent implements ContextItem, Comparable<Intent> {
     }
 
     public Intent resolve() {
-        return AndroidEntryPointManager.MANAGER.getIntent(this);
+        return this.manager.getIntent(this);
     }
 
     @Override

@@ -50,6 +50,7 @@ import com.ibm.wala.dalvik.ipa.callgraph.androidModel.AndroidModel;
 import com.ibm.wala.dalvik.ipa.callgraph.androidModel.AndroidModelClass;
 import com.ibm.wala.dalvik.ipa.callgraph.impl.AndroidEntryPoint;
 import com.ibm.wala.dalvik.util.AndroidComponent;
+import com.ibm.wala.dalvik.util.AndroidEntryPointManager;
 import com.ibm.wala.dalvik.util.AndroidTypes;
 import com.ibm.wala.ipa.callgraph.AnalysisOptions;
 import com.ibm.wala.ipa.callgraph.IAnalysisCacheView;
@@ -98,10 +99,10 @@ public class ExternalModel extends AndroidModel {
         return false;
     }
 
-    public ExternalModel(final IClassHierarchy cha, final AnalysisOptions options, final IAnalysisCacheView cache, 
+    public ExternalModel(final AndroidEntryPointManager manager, final IClassHierarchy cha, final AnalysisOptions options, final IAnalysisCacheView cache,
             AndroidComponent target) {
-        super(cha, options, cache);
-        
+        super(manager, cha, options, cache);
+
         if (target == null) {
             throw new IllegalArgumentException("The component type requested to create an ExternalModel for was null");
         }
@@ -112,7 +113,7 @@ public class ExternalModel extends AndroidModel {
 
     //@Override
     private void register(SummarizedMethod model) {
-        AndroidModelClass mClass = AndroidModelClass.getInstance(cha);
+        AndroidModelClass mClass = AndroidModelClass.getInstance(this.manager, cha);
         if (!(mClass.containsMethod(model.getSelector()))) {
             mClass.addMethod(model);
         }
@@ -141,7 +142,7 @@ public class ExternalModel extends AndroidModel {
         final Selector selector = new Selector(name, descr); 
 
         // Assert not registered yet
-        final AndroidModelClass mClass = AndroidModelClass.getInstance(this.cha);
+        final AndroidModelClass mClass = AndroidModelClass.getInstance(this.manager, this.cha);
         if (mClass.containsMethod(selector)) {
             this.model = (SummarizedMethod) mClass.getMethod(selector);
             return;
@@ -153,7 +154,7 @@ public class ExternalModel extends AndroidModel {
          
          populate(null);
 
-         this.klass = AndroidModelClass.getInstance(this.cha);
+         this.klass = AndroidModelClass.getInstance(this.manager, this.cha);
 
          this.model = new SummarizedMethod(this.mRef, this.body.getMethodSummary(), this.klass) {
             @Override

@@ -41,6 +41,7 @@
 package com.ibm.wala.dalvik.ipa.callgraph.androidModel;
 
 import com.ibm.wala.dalvik.ipa.callgraph.impl.AndroidEntryPoint;
+import com.ibm.wala.dalvik.util.AndroidEntryPointManager;
 import com.ibm.wala.ipa.callgraph.AnalysisOptions;
 import com.ibm.wala.ipa.callgraph.IAnalysisCacheView;
 import com.ibm.wala.ipa.cha.IClassHierarchy;
@@ -61,7 +62,7 @@ public class MicroModel extends AndroidModel {
 //    private SummarizedMethod activityModel;
     /**
      *  Restrict the model to Activities.
-     *  
+     *
      *  {@inheritDoc}
      */
     @Override
@@ -69,15 +70,15 @@ public class MicroModel extends AndroidModel {
         return ep.isMemberOf(this.target);
     }
 
-    public MicroModel(final IClassHierarchy cha, final AnalysisOptions options, final IAnalysisCacheView cache, Atom target) {
-        super(cha, options, cache);
+    public MicroModel(final AndroidEntryPointManager manager, final IClassHierarchy cha, final AnalysisOptions options, final IAnalysisCacheView cache, Atom target) {
+        super(manager, cha, options, cache);
 
         this.target = target;
         this.name = Atom.concat(Atom.findOrCreateAsciiAtom("start"), target.right(target.rIndex((byte)'/') - 1));
     }
 
     private void register(SummarizedMethod model) {
-        AndroidModelClass mClass = AndroidModelClass.getInstance(cha);
+        AndroidModelClass mClass = AndroidModelClass.getInstance(this.manager, cha);
         if (!(mClass.containsMethod(model.getSelector()))) {
             mClass.addMethod(model);
         }
