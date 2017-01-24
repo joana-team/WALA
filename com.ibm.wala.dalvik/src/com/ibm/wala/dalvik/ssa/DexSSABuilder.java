@@ -13,6 +13,8 @@ package com.ibm.wala.dalvik.ssa;
 
 import java.util.Iterator;
 
+import org.jf.dexlib.Code.Format.ArrayDataPseudoInstruction.ArrayElement;
+
 import com.ibm.wala.cfg.IBasicBlock;
 import com.ibm.wala.classLoader.CallSiteReference;
 import com.ibm.wala.classLoader.Language;

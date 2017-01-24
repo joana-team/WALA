@@ -41,8 +41,6 @@
 package com.ibm.wala.dalvik.ipa.callgraph.androidModel.stubs;
 
 import java.util.Collection;
-import java.util.HashSet;
-import java.util.logging.Logger;
 
 import com.ibm.wala.classLoader.IClass;
 import com.ibm.wala.dalvik.ipa.callgraph.androidModel.AndroidModel;

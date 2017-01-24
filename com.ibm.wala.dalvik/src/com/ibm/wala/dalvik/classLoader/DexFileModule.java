@@ -50,7 +50,6 @@ package com.ibm.wala.dalvik.classLoader;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.jar.JarFile;
 
