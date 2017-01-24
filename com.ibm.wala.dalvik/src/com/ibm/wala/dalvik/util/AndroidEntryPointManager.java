@@ -43,6 +43,10 @@ package com.ibm.wala.dalvik.util;
 import java.io.Serializable;
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -92,7 +96,7 @@ public final /* singleton */ class AndroidEntryPointManager implements Serializa
     /**
      *  Determines if any EntryPoint extends the specified component.
      */
-    public static boolean EPContainAny(AndroidComponent compo) {
+    public boolean EPContainAny(AndroidComponent compo) {
         for (AndroidEntryPoint ep: ENTRIES) {
             if (ep.belongsTo(compo)) {
                 return true;
@@ -102,7 +106,7 @@ public final /* singleton */ class AndroidEntryPointManager implements Serializa
     }
 
     public AndroidEntryPointManager() {
-        this.ENTRIES = new ArrayList<AndroidEntryPoint>();
+        this.ENTRIES = new ArrayList<>();
     }
 
     public Set<TypeReference> getComponents() {
@@ -315,6 +319,20 @@ public final /* singleton */ class AndroidEntryPointManager implements Serializa
         this.abstractAndroidModel = abstractAndroidModel;
     }
 
+    public void setEntries(Collection<? extends AndroidEntryPoint> newEntries) {
+        this.ENTRIES = new LinkedList<>();
+        for (AndroidEntryPoint newEntry : newEntries) {
+            this.ENTRIES.add(newEntry);
+        }
+    }
+
+    public void addEntry(AndroidEntryPoint entry) {
+        this.ENTRIES.add(entry);
+    }
+
+    public void sortEntries(Comparator<? super AndroidEntryPoint> comp) {
+        Collections.sort(this.ENTRIES, comp);
+    }
     //
     //  Propertys of the analyzed app
     //
