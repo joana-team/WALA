@@ -81,7 +81,7 @@ public final /* singleton */ class AndroidEntryPointManager implements Serializa
     private static final Logger logger = LoggerFactory.getLogger(AndroidEntryPointManager.class);
 
     public static AndroidEntryPointManager MANAGER = new AndroidEntryPointManager();
-    public static List<AndroidEntryPoint> ENTRIES = new ArrayList<>();
+    private List<AndroidEntryPoint> ENTRIES = new ArrayList<>();
     /**
      * This is TRANSIENT!
      */
@@ -102,10 +102,11 @@ public final /* singleton */ class AndroidEntryPointManager implements Serializa
         return false;
     }
 
-    private AndroidEntryPointManager() {}
+    private AndroidEntryPointManager() {
+        this.ENTRIES = new ArrayList<AndroidEntryPoint>();
+    }
 
     public static void reset() {
-        ENTRIES = new ArrayList<>();
         MANAGER = new AndroidEntryPointManager();
     }
 
@@ -124,6 +125,9 @@ public final /* singleton */ class AndroidEntryPointManager implements Serializa
         return ret;
     }
 
+    public List<AndroidEntryPoint> getEntries() {
+        return ENTRIES;
+    }
     //
     //  General settings
     //

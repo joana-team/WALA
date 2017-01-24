@@ -151,7 +151,7 @@ public class UnknownTargetModel  extends AndroidModel {
         {   // Check if this Application has components, that implement target. If not we don't
             // have to build a MiniModel.
             doMini = false;
-            for (final AndroidEntryPoint ep : AndroidEntryPointManager.ENTRIES) {
+            for (final AndroidEntryPoint ep : AndroidEntryPointManager.MANAGER.getEntries()) {
                 if (ep.belongsTo(this.target)) {
                     doMini = true;
                     break;

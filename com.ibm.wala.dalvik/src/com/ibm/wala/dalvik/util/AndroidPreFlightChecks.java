@@ -196,7 +196,7 @@ public class AndroidPreFlightChecks {
     public boolean checkIntentSpecs() {
         boolean pass = true;
 
-        final List <AndroidEntryPoint> entrypoits = AndroidEntryPointManager.ENTRIES;
+        final List <AndroidEntryPoint> entrypoits = AndroidEntryPointManager.MANAGER.getEntries();
 
         for (AndroidEntryPoint ep : entrypoits) {
             final TypeName test = ep.getMethod().getDeclaringClass().getName();
@@ -225,7 +225,7 @@ public class AndroidPreFlightChecks {
         boolean pass = true;
 
         final IInstantiationBehavior behaviour = this.manager.getInstantiationBehavior(cha); // XXX: This generates false positives without cha!
-        final List <AndroidEntryPoint> entrypoits = AndroidEntryPointManager.ENTRIES;
+        final List <AndroidEntryPoint> entrypoits = AndroidEntryPointManager.MANAGER.getEntries();
 
         for (AndroidEntryPoint ep : entrypoits) {
             final TypeName test = ep.getMethod().getDeclaringClass().getName();
@@ -245,7 +245,7 @@ public class AndroidPreFlightChecks {
     public boolean checkNoObjectInEntryPoints() {
         boolean pass = true;
 
-        final List <AndroidEntryPoint> entrypoits = AndroidEntryPointManager.ENTRIES;
+        final List <AndroidEntryPoint> entrypoits = AndroidEntryPointManager.MANAGER.getEntries();
         for (AndroidEntryPoint ep : entrypoits) {
             final TypeName[] params =  ep.getMethod().getDescriptor().getParameters();
             if (params == null) continue;

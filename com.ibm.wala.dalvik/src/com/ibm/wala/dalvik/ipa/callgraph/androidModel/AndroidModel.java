@@ -175,7 +175,7 @@ public class AndroidModel /* makes SummarizedMethod */
     protected void build(Atom name) throws CancelException {
         final List<AndroidEntryPoint> restrictedEntries = new ArrayList<>();
 
-        for (AndroidEntryPoint ep: AndroidEntryPointManager.ENTRIES) {
+        for (AndroidEntryPoint ep: AndroidEntryPointManager.MANAGER.getEntries()) {
             if (selectEntryPoint(ep)) {
                 restrictedEntries.add(ep);
             }
