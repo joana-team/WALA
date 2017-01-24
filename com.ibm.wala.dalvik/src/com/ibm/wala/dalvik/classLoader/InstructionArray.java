@@ -49,12 +49,12 @@ package com.ibm.wala.dalvik.classLoader;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 import com.ibm.wala.dalvik.dex.instructions.Instruction;
+import com.ibm.wala.util.collections.HashMapFactory;
 
 /**
  * Collection of Instruction wich allow to get an instruction from its table
@@ -69,7 +69,7 @@ public class InstructionArray implements Collection<Instruction> {
 
     public InstructionArray() {
         instructions = new ArrayList<>();
-        pc2index = new HashMap<>();
+        pc2index = HashMapFactory.make();
         index2pc = new ArrayList<>();
     }
 

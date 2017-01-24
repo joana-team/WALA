@@ -91,6 +91,7 @@ import com.ibm.wala.types.TypeReference;
 import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.MonitorUtil;
 import com.ibm.wala.util.MonitorUtil.IProgressMonitor;
+import com.ibm.wala.util.collections.HashSetFactory;
 import com.ibm.wala.util.ssa.ParameterAccessor;
 import com.ibm.wala.util.ssa.ParameterAccessor.Parameter;
 import com.ibm.wala.util.ssa.SSAValue;
@@ -349,7 +350,7 @@ public class AndroidModel /* makes SummarizedMethod */
         //  Add preparing code to the model
         //
         if (AndroidModel.doBoot) {
-//            final Set<Parameter> allActivities = new HashSet<Parameter>(modelAcc.allExtend(AndroidTypes.ActivityName, getClassHierarchy()));
+//            final Set<Parameter> allActivities = HashSetFactory.make(modelAcc.allExtend(AndroidTypes.ActivityName, getClassHierarchy()));
             //assert(allActivities.size() > 0) : "There are no Activities in the Model"; // XXX
 //            final IntentStarters.StartInfo toolInfo = IntentStarters.StartInfo.makeContextFree(null);
 //            final AndroidStartComponentTool tool = new AndroidStartComponentTool(this.cha, this.mRef, toolInfo.getFlags(),
@@ -675,7 +676,7 @@ public class AndroidModel /* makes SummarizedMethod */
         assert(allActivities.size() == modelsActivities.size());
 
         // The defaults for connectThrough
-        final Set<SSAValue> defaults = new HashSet<>();
+        final Set<SSAValue> defaults = HashSetFactory.make();
         { // Calls that don't take a bundle usually call through with a null-bundle
             final SSAValue nullBundle = pm.getUnmanaged(AndroidTypes.Bundle, "nullBundle");
             redirect.addConstant(nullBundle.getNumber(), new ConstantValue(null));
@@ -721,7 +722,7 @@ public class AndroidModel /* makes SummarizedMethod */
 
         // Call the model
         {
-            final List<SSAValue> redirectParams = acc.connectThrough(modelAcc, new HashSet<>(allActivities), defaults,
+            final List<SSAValue> redirectParams = acc.connectThrough(modelAcc, HashSetFactory.make(allActivities), defaults,
                     getClassHierarchy(), /* IInstantiator this.createInstance(type, redirect, pm)  */ instantiator, false, null, null);
             final int callPC = redirect.getNextProgramCounter();
             final CallSiteReference site = CallSiteReference.make(callPC, this.model.getReference(),

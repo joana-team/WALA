@@ -61,6 +61,7 @@ import org.jf.dexlib2.iface.DexFile;
 
 import com.ibm.wala.classLoader.Module;
 import com.ibm.wala.classLoader.ModuleEntry;
+import com.ibm.wala.util.collections.HashSetFactory;
 import com.ibm.wala.util.io.TemporaryFile;
 
 /**
@@ -112,7 +113,7 @@ public class DexFileModule implements Module {
         }
 
         // create ModuleEntries from ClassDefItem
-        entries = new HashSet<>();
+        entries = HashSetFactory.make();
 
         for (ClassDef cdefitems : dexfile.getClasses()) {
             entries.add(new DexModuleEntry(cdefitems, this));

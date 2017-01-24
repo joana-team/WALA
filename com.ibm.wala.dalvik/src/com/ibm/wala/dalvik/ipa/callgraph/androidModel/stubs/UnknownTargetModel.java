@@ -42,7 +42,6 @@ package com.ibm.wala.dalvik.ipa.callgraph.androidModel.stubs;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -69,6 +68,7 @@ import com.ibm.wala.types.MethodReference;
 import com.ibm.wala.types.TypeName;
 import com.ibm.wala.types.TypeReference;
 import com.ibm.wala.util.CancelException;
+import com.ibm.wala.util.collections.HashSetFactory;
 import com.ibm.wala.util.ssa.ParameterAccessor;
 import com.ibm.wala.util.ssa.SSAValue;
 import com.ibm.wala.util.ssa.SSAValueManager;
@@ -171,10 +171,10 @@ public class UnknownTargetModel  extends AndroidModel {
                 final TypeName[] othersA = miniModel.getDescriptor().getParameters();
                 final Set<TypeName> others;
                 if (othersA != null) {
-                    others = new HashSet<>(Arrays.asList(othersA));
+                    others = HashSetFactory.make(Arrays.asList(othersA));
                 } else {
                     
-                    others = new HashSet<>();
+                    others = HashSetFactory.make();
                 }
                 doMini = others.size() > 0;
                 others.addAll(Arrays.asList(externalModel.getDescriptor().getParameters()));

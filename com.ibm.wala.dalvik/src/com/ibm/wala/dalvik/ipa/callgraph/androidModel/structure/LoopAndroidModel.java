@@ -41,7 +41,6 @@
 package com.ibm.wala.dalvik.ipa.callgraph.androidModel.structure;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -55,6 +54,7 @@ import com.ibm.wala.shrikeBT.IConditionalBranchInstruction;
 import com.ibm.wala.ssa.ConstantValue;
 import com.ibm.wala.ssa.SSAPhiInstruction;
 import com.ibm.wala.types.TypeReference;
+import com.ibm.wala.util.collections.HashMapFactory;
 import com.ibm.wala.util.ssa.SSAValue;
 import com.ibm.wala.util.ssa.SSAValue.NamedKey;
 import com.ibm.wala.util.ssa.SSAValue.TypeKey;
@@ -111,7 +111,7 @@ public class LoopAndroidModel extends SingleStartAndroidModel {
         paramManager.scopeDown(true);
 
         // Top-Half of Phi-Handling
-        outerStartingPhis = new HashMap<>();
+        outerStartingPhis = HashMapFactory.make();
         List<TypeReference> outerPhisNeeded = returnTypesBetween(ExecutionOrder.START_OF_LOOP,
                 ExecutionOrder.AFTER_LOOP);
         

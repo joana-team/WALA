@@ -46,8 +46,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collections;
 import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
@@ -63,6 +61,8 @@ import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
 import com.ibm.wala.dalvik.ipa.callgraph.propagation.cfa.Intent;
+import com.ibm.wala.util.collections.HashMapFactory;
+import com.ibm.wala.util.collections.HashSetFactory;
 
 /**
  *  Read in an extracted AndroidManifest.xml.
@@ -210,7 +210,7 @@ public class AndroidManifestXMLReader {
         private final ISubTags allowedSubTagsHolder;
         private final ParserItem item;
         private Set<Tag> allowedSubTags;    // Delay init
-        private static final Map<String, Tag> reverseMap = new HashMap<>();// HashMapFactory.make(9);
+        private static final Map<String, Tag> reverseMap = HashMapFactory.make();// HashMapFactory.make(9);
         
         Tag (String tagName, ISubTags allowedSubTags, Set<Attr> relevant, Class<? extends ParserItem> item) {
             this.tagName = tagName;
@@ -368,7 +368,7 @@ public class AndroidManifestXMLReader {
      *
      *  The Item that consumes an Attribute has to pop it.
      */
-    private static final Map<HistoryKey, Stack<Object>> attributesHistory = new HashMap<>();  // No EnumMap possible :(
+    private static final Map<HistoryKey, Stack<Object>> attributesHistory = HashMapFactory.make();  // No EnumMap possible :(
 
     static {
         for (Attr attr : Attr.values()) {
@@ -526,8 +526,8 @@ public class AndroidManifestXMLReader {
         @Override
         public void leave() {
             Set<Tag> allowedTags = EnumSet.copyOf(self.getAllowedSubTags());
-            Set<String> urls = new HashSet<>();
-            Set<String> names = new HashSet<>();
+            Set<String> urls = HashSetFactory.make();
+            Set<String> names = HashSetFactory.make();
             while (parserStack.peek() != self) {
                 Tag current = parserStack.pop();
                 if (allowedTags.contains(current)) {
@@ -597,7 +597,7 @@ public class AndroidManifestXMLReader {
         @Override
          public void leave() {
             final Set<Tag> allowedTags = self.getAllowedSubTags();
-            final Set<Intent> overrideTargets = new HashSet<>(); 
+            final Set<Intent> overrideTargets = HashSetFactory.make(); 
 
             while (parserStack.peek() != self) {
                 Tag current = parserStack.pop();

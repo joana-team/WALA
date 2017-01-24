@@ -46,7 +46,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumSet;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -70,6 +69,7 @@ import com.ibm.wala.ipa.cha.IClassHierarchy;
 import com.ibm.wala.types.ClassLoaderReference;
 import com.ibm.wala.types.TypeReference;
 import com.ibm.wala.util.MonitorUtil.IProgressMonitor;
+import com.ibm.wala.util.collections.HashSetFactory;
 import com.ibm.wala.util.config.SetOfClasses;
 
 /**
@@ -146,7 +146,7 @@ public final class AndroidEntryPointLocator {
             throw new IllegalArgumentException("I need a ClassHierarchy to search");
         }
 
-        Set<AndroidEntryPoint> entryPoints = new HashSet<>();
+        Set<AndroidEntryPoint> entryPoints = HashSetFactory.make();
 
         mon.beginTask("Locating Entrypoints", IProgressMonitor.UNKNOWN);
         int dummy = 0;  // for the progress monitor
@@ -183,7 +183,7 @@ nextMethod:
         } // for IClass : cha
 
         if (this.flags.contains(LocatorFlags.EP_HEURISTIC) || this.flags.contains(LocatorFlags.CB_HEURISTIC)) {
-            final Set<TypeReference> bases = new HashSet<>();
+            final Set<TypeReference> bases = HashSetFactory.make();
 
             if (this.flags.contains(LocatorFlags.EP_HEURISTIC)) {
                 // Add bases for EP-Heuristic

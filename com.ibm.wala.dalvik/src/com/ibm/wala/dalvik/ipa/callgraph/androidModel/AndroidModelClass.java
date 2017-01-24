@@ -237,7 +237,7 @@ public final /* singleton */ class AndroidModelClass extends SyntheticClass {
     //  Contents of the class: Fields
     //  We have none...
     //
-    private Map<Atom, IField> fields = new HashMap<>();
+    private Map<Atom, IField> fields = HashMapFactory.make();
 
     @Override
     public IField getField(Atom name) {

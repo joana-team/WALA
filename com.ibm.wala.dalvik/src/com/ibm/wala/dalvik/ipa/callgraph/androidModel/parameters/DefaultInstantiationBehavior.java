@@ -42,7 +42,6 @@ package com.ibm.wala.dalvik.ipa.callgraph.androidModel.parameters;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.HashMap;
 import java.util.Map;
 
 import com.ibm.wala.classLoader.IClass;
@@ -52,6 +51,7 @@ import com.ibm.wala.ipa.cha.IClassHierarchy;
 import com.ibm.wala.types.MethodReference;
 import com.ibm.wala.types.TypeName;
 import com.ibm.wala.types.TypeReference;
+import com.ibm.wala.util.collections.HashMapFactory;
 import com.ibm.wala.util.strings.Atom;
 
 /**
@@ -124,7 +124,7 @@ public class DefaultInstantiationBehavior extends IInstantiationBehavior {
     }
 
 
-    private final Map<BehaviorKey<?>, BehviourValue> behaviours = new HashMap<>();
+    private final Map<BehaviorKey<?>, BehviourValue> behaviours = HashMapFactory.make();
     private final transient IClassHierarchy cha;
 
     public DefaultInstantiationBehavior(final IClassHierarchy cha) {
@@ -352,7 +352,7 @@ public class DefaultInstantiationBehavior extends IInstantiationBehavior {
         if (this.serializationIncludesCache) {
             stream.writeObject(this.behaviours);
         } else {
-            final Map<BehaviorKey<?>, BehviourValue> strippedBehaviours = new HashMap<>();
+            final Map<BehaviorKey<?>, BehviourValue> strippedBehaviours = HashMapFactory.make();
             for (final BehaviorKey<?> key : this.behaviours.keySet()) {
                 final BehviourValue val = this.behaviours.get(key);
                 if (! val.isCached() ) {

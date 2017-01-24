@@ -44,7 +44,6 @@ import java.io.Serializable;
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -67,6 +66,7 @@ import com.ibm.wala.types.TypeReference;
 import com.ibm.wala.util.MonitorUtil.IProgressMonitor;
 import com.ibm.wala.util.NullProgressMonitor;
 import com.ibm.wala.util.collections.HashMapFactory;
+import com.ibm.wala.util.collections.HashSetFactory;
 import com.ibm.wala.util.ssa.SSAValueManager;
 import com.ibm.wala.util.ssa.TypeSafeInstructionFactory;
 import com.ibm.wala.util.strings.StringStuff;
@@ -115,7 +115,7 @@ public final /* singleton */ class AndroidEntryPointManager implements Serializa
             throw new IllegalStateException("No entrypoints loaded yet.");
         }
         
-        final Set<TypeReference> ret = new HashSet<>();
+        final Set<TypeReference> ret = HashSetFactory.make();
         for (final AndroidEntryPoint ep : ENTRIES) {
             final TypeReference epClass = ep.getMethod().getDeclaringClass().getReference();
             if (AndroidComponent.isAndroidComponent(epClass , ep.getClassHierarchy())) {
@@ -532,7 +532,7 @@ public final /* singleton */ class AndroidEntryPointManager implements Serializa
         }
     }
 
-    public static final Map<Intent, Intent> DEFAULT_INTENT_OVERRIDES = new HashMap<>();
+    public static final Map<Intent, Intent> DEFAULT_INTENT_OVERRIDES = HashMapFactory.make();
     static {
         DEFAULT_INTENT_OVERRIDES.put(
                 new AndroidSettingFactory.ExternalIntent("Landroid/intent/action/DIAL"),

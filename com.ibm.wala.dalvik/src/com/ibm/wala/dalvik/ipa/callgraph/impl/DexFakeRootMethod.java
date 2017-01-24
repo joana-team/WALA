@@ -47,7 +47,6 @@
 package com.ibm.wala.dalvik.ipa.callgraph.impl;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -71,6 +70,7 @@ import com.ibm.wala.types.MemberReference;
 import com.ibm.wala.types.MethodReference;
 import com.ibm.wala.types.TypeName;
 import com.ibm.wala.types.TypeReference;
+import com.ibm.wala.util.collections.HashMapFactory;
 import com.ibm.wala.util.strings.Atom;
 import com.ibm.wala.util.warnings.Warning;
 import com.ibm.wala.util.warnings.Warnings;
@@ -87,9 +87,9 @@ public class DexFakeRootMethod extends AbstractRootMethod {
 
 	public static final MethodReference rootMethod = MethodReference.findOrCreate(FakeRootClass.FAKE_ROOT_CLASS, name, descr);
 	
-	public static Map<TypeReference, Integer> referenceTypeMap = new HashMap<>();
+	public static Map<TypeReference, Integer> referenceTypeMap = HashMapFactory.make();
 	
-//	public static Set<TypeReference> referenceTypeSet = new HashSet<TypeReference>();
+//	public static Set<TypeReference> referenceTypeSet = HashSetFactory.make();
 	
 	public DexFakeRootMethod(final IClassHierarchy cha, AnalysisOptions options, IAnalysisCacheView cache) {
 		super(rootMethod, cha, options, cache);

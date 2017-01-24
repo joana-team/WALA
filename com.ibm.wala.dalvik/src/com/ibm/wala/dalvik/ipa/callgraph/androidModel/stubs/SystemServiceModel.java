@@ -42,6 +42,7 @@ package com.ibm.wala.dalvik.ipa.callgraph.androidModel.stubs;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.logging.Logger;
 
 import com.ibm.wala.classLoader.IClass;
 import com.ibm.wala.dalvik.ipa.callgraph.androidModel.AndroidModel;
@@ -64,6 +65,7 @@ import com.ibm.wala.types.Selector;
 import com.ibm.wala.types.TypeName;
 import com.ibm.wala.types.TypeReference;
 import com.ibm.wala.util.CancelException;
+import com.ibm.wala.util.collections.HashSetFactory;
 import com.ibm.wala.util.ssa.ParameterAccessor;
 import com.ibm.wala.util.ssa.SSAValue;
 import com.ibm.wala.util.ssa.SSAValueManager;
@@ -200,12 +202,12 @@ public class SystemServiceModel extends AndroidModel {
 
         if (this.target.equals("phone")) {
             
-            retVal = instantiator.createInstance(AndroidTypes.TelephonyManager, false, new SSAValue.UniqueKey(), new HashSet<>(pAcc.all()));
+            retVal = instantiator.createInstance(AndroidTypes.TelephonyManager, false, new SSAValue.UniqueKey(), HashSetFactory.make(pAcc.all()));
         //} else if (this.target.equals("Lwindow")) { // TODO: Is an interface
         //     
         //    final TypeName wmN = TypeName.findOrCreate("Landroid/view/WindowManager");
         //    final TypeReference wmT = TypeReference.findOrCreate(ClassLoaderReference.Primordial, wmN);
-        //    retVal = instantiator.createInstance(wmT, false, new SSAValue.UniqueKey(), new HashSet<Parameter>(pAcc.all()));
+        //    retVal = instantiator.createInstance(wmT, false, new SSAValue.UniqueKey(), HashSetFactory.make(pAcc.all()));
         //} else if (this.target.equals("Llayout_inflater")) {
         //} else if (this.target.equals("Lactivity")) {
         //} else if (this.target.equals("Lpower")) {
@@ -215,43 +217,43 @@ public class SystemServiceModel extends AndroidModel {
              
             final TypeName n = TypeName.findOrCreate("Landroid/app/KeyguardManager");
             final TypeReference T = TypeReference.findOrCreate(ClassLoaderReference.Primordial, n);
-            retVal = instantiator.createInstance(T, false, new SSAValue.UniqueKey(), new HashSet<>(pAcc.all()));
+            retVal = instantiator.createInstance(T, false, new SSAValue.UniqueKey(), HashSetFactory.make(pAcc.all()));
         } else if (this.target.equals("location")) {
              
             final TypeName n = TypeName.findOrCreate("Landroid/location/LocationManager");
             final TypeReference T = TypeReference.findOrCreate(ClassLoaderReference.Primordial, n);
-            retVal = instantiator.createInstance(T, false, new SSAValue.UniqueKey(), new HashSet<>(pAcc.all()));
+            retVal = instantiator.createInstance(T, false, new SSAValue.UniqueKey(), HashSetFactory.make(pAcc.all()));
         } else if (this.target.equals("search")) {
              // TODO: Param: Handler
             final TypeName n = TypeName.findOrCreate("Landroid/app/SearchManager");
             final TypeReference T = TypeReference.findOrCreate(ClassLoaderReference.Primordial, n);
-            retVal = instantiator.createInstance(T, false, new SSAValue.UniqueKey(), new HashSet<>(pAcc.all()));
+            retVal = instantiator.createInstance(T, false, new SSAValue.UniqueKey(), HashSetFactory.make(pAcc.all()));
         //} else if (this.target.equals("Lvibrator")) { // TODO: Is abstract
         } else if (this.target.equals("connection")) {
              // TODO: use ConnectivityManager.from
             final TypeName n = TypeName.findOrCreate("Landroid/net/ConnectivityManager");
             final TypeReference T = TypeReference.findOrCreate(ClassLoaderReference.Primordial, n);
-            retVal = instantiator.createInstance(T, false, new SSAValue.UniqueKey(), new HashSet<>(pAcc.all()));
+            retVal = instantiator.createInstance(T, false, new SSAValue.UniqueKey(), HashSetFactory.make(pAcc.all()));
         } else if (this.target.equals("wifi")) {
              // Handle Params: Context context, IWifiManager service
             final TypeName n = TypeName.findOrCreate("Landroid/net/wifi/WifiManager");
             final TypeReference T = TypeReference.findOrCreate(ClassLoaderReference.Primordial, n);
-            retVal = instantiator.createInstance(T, false, new SSAValue.UniqueKey(), new HashSet<>(pAcc.all()));
+            retVal = instantiator.createInstance(T, false, new SSAValue.UniqueKey(), HashSetFactory.make(pAcc.all()));
         } else if (this.target.equals("input_method")) {
              // TODO: Use InputMethodManager.getInstance?
             final TypeName n = TypeName.findOrCreate("Landroid/view/inputmethod/InputMethodManager");
             final TypeReference T = TypeReference.findOrCreate(ClassLoaderReference.Primordial, n);
-            retVal = instantiator.createInstance(T, false, new SSAValue.UniqueKey(), new HashSet<>(pAcc.all()));
+            retVal = instantiator.createInstance(T, false, new SSAValue.UniqueKey(), HashSetFactory.make(pAcc.all()));
         } else if (this.target.equals("uimode")) {
             
             final TypeName n = TypeName.findOrCreate("Landroid/app/UiModeManager");
             final TypeReference T = TypeReference.findOrCreate(ClassLoaderReference.Primordial, n);
-            retVal = instantiator.createInstance(T, false, new SSAValue.UniqueKey(), new HashSet<>(pAcc.all()));
+            retVal = instantiator.createInstance(T, false, new SSAValue.UniqueKey(), HashSetFactory.make(pAcc.all()));
         } else if (this.target.equals("download")) {
                 // TODO: Params ContentResolver resolver, String packageName
             final TypeName n = TypeName.findOrCreate("Landroid/app/DownloadManager");
             final TypeReference T = TypeReference.findOrCreate(ClassLoaderReference.Primordial, n);
-            retVal = instantiator.createInstance(T, false, new SSAValue.UniqueKey(), new HashSet<>(pAcc.all()));
+            retVal = instantiator.createInstance(T, false, new SSAValue.UniqueKey(), HashSetFactory.make(pAcc.all()));
         } else {
             retVal = pm.getUnmanaged(TypeReference.JavaLangObject, "notFound");
             this.body.addConstant(retVal.getNumber(), new ConstantValue(null));
