@@ -97,10 +97,12 @@ public class AndroidManifestXMLReader {
      */
     private static final Logger logger = LoggerFactory.getLogger(AndroidSettingFactory.class);
 
-    public AndroidManifestXMLReader(File xmlFile) {
+    private final AndroidEntryPointManager manager;
+    public AndroidManifestXMLReader(final AndroidEntryPointManager manager, File xmlFile) {
         if (xmlFile == null) {
             throw new IllegalArgumentException("xmlFile may not be null");
         }
+        this.manager = manager;
         try (final FileInputStream in = new FileInputStream(xmlFile)) {
             readXML(in);
         } catch (Exception e) {
@@ -109,10 +111,11 @@ public class AndroidManifestXMLReader {
         }
     }
 
-    public AndroidManifestXMLReader(InputStream xmlFile) {
+    public AndroidManifestXMLReader(final AndroidEntryPointManager manager, InputStream xmlFile) {
         if (xmlFile == null) {
             throw new IllegalArgumentException("xmlFile may not be null");
         }
+        this.manager = manager;
         try {
             readXML(xmlFile);
         } catch (Exception e) {
@@ -391,7 +394,6 @@ public class AndroidManifestXMLReader {
      */
     private static abstract class ParserItem {
         protected Tag self;
-        protected final AndroidEntryPointManager manager;
         /**
          *  Set the Tag this ParserItem-Instance is an Handler for.
          *
@@ -404,8 +406,7 @@ public class AndroidManifestXMLReader {
             this.self = self;
         }
         
-        public ParserItem(final AndroidEntryPointManager manager) {
-            this.manager = manager;
+        public ParserItem() {
         }
         
         /**
@@ -415,7 +416,7 @@ public class AndroidManifestXMLReader {
          *
          *  Leave Parser-Stack alone! This is called by SAXHandler only!
          */    
-        public void enter(Attributes saxAttrs) {
+        public void enter(@SuppressWarnings("unused") final AndroidEntryPointManager manager, Attributes saxAttrs) {
             for (Attr relevant : self.getRelevantAttributes()) {
                 String attr = saxAttrs.getValue(relevant.getName());
                 if (attr == null) {
@@ -459,7 +460,7 @@ public class AndroidManifestXMLReader {
          *  Do this by popping them, but leave self on the stack!
          *  For each Item popped call its popAttributes()!
          */
-        public void leave() {
+        public void leave(@SuppressWarnings("unused") final AndroidEntryPointManager manager) {
             while (parserStack.peek() != self) {
                 final Set<Tag> allowedSubTags = self.getAllowedSubTags();
                 Tag subTag = parserStack.pop();
@@ -485,11 +486,10 @@ public class AndroidManifestXMLReader {
      *  Attributes.
      */
     private static class FinalItem extends ParserItem {
-        public FinalItem(final AndroidEntryPointManager manager) {
-            super(manager);
+        public FinalItem() {
         }
         @Override
-        public void leave() {
+        public void leave(final AndroidEntryPointManager manager) {
             final Set<Tag> subs = self.getAllowedSubTags();
             if (!((subs == null) || subs.isEmpty())) {
                 throw new IllegalArgumentException("FinalItem can not be applied to " + self + " as it contains sub-tags: " + 
@@ -509,8 +509,7 @@ public class AndroidManifestXMLReader {
      *  It's like FinalItem but may contain sub-tags.
      */
     private static class NoOpItem extends ParserItem {
-        public NoOpItem(AndroidEntryPointManager manager) {
-            super(manager);
+        public NoOpItem() {
         }
     }
 
@@ -518,13 +517,12 @@ public class AndroidManifestXMLReader {
      *  The root-element of an AndroidManifest contains the package.
      */
     private static class ManifestItem extends ParserItem {
-        public ManifestItem(AndroidEntryPointManager manager) {
-            super(manager);
+        public ManifestItem() {
         }
         @Override
-        public void enter(Attributes saxAttrs) {
-            super.enter(saxAttrs);
-            this.manager.setPackage((String) attributesHistory.get(Attr.PACKAGE).peek());
+        public void enter(final AndroidEntryPointManager manager, Attributes saxAttrs) {
+            super.enter(manager, saxAttrs);
+            manager.setPackage((String) attributesHistory.get(Attr.PACKAGE).peek());
         }
     }
 
@@ -534,11 +532,10 @@ public class AndroidManifestXMLReader {
      *  TODO: Handle the URI
      */
     private static class IntentItem extends ParserItem {
-        public IntentItem(final AndroidEntryPointManager manager) {
-            super(manager);
+        public IntentItem() {
         }
         @Override
-        public void leave() {
+        public void leave(final AndroidEntryPointManager manager) {
             Set<Tag> allowedTags = EnumSet.copyOf(self.getAllowedSubTags());
             Set<String> urls = HashSetFactory.make();
             Set<String> names = HashSetFactory.make();
@@ -590,7 +587,7 @@ public class AndroidManifestXMLReader {
                     if (urls.isEmpty()) urls.add(null);
                     for (String url : urls) {
                         logger.info("New Intent ({}, {})", name, url);
-                        final Intent intent = AndroidSettingFactory.intent(this.manager, name, url);
+                        final Intent intent = AndroidSettingFactory.intent(manager, name, url);
                         attributesHistory.get(self).push(intent);
                     }
             }
@@ -608,11 +605,10 @@ public class AndroidManifestXMLReader {
     }
 
     private static class ComponentItem extends ParserItem {
-        public ComponentItem(final AndroidEntryPointManager manager) {
-            super(manager);
+        public ComponentItem() {
         }
         @Override
-         public void leave() {
+         public void leave(final AndroidEntryPointManager manager) {
             final Set<Tag> allowedTags = self.getAllowedSubTags();
             final Set<Intent> overrideTargets = HashSetFactory.make(); 
 
@@ -656,16 +652,16 @@ public class AndroidManifestXMLReader {
             } else {
                 name = (String) attributesHistory.get(Attr.NAME).peek(); // TODO: Verify type!
             }
-            final Intent intent = AndroidSettingFactory.intent(this.manager, pack, name, null);
+            final Intent intent = AndroidSettingFactory.intent(manager, pack, name, null);
 
             logger.info("\tRegister: {}", intent);
-            this.manager.registerIntent(intent);
+            manager.registerIntent(intent);
             for (Intent ovr: overrideTargets) {
                 logger.info("\tOverride: {} --> {}", ovr, intent);
                 if (ovr.equals(intent)) {
-                    this.manager.registerIntent(intent);
+                    manager.registerIntent(intent);
                 } else {
-                    this.manager.setOverride(ovr, intent);
+                    manager.setOverride(ovr, intent);
                 }
             }
         }
@@ -689,7 +685,7 @@ public class AndroidManifestXMLReader {
                 
                 final ParserItem handler = tag.getHandler();
                 if (handler != null) {
-                    handler.enter(attrs);
+                    handler.enter(manager, attrs);
                 }
                 parserStack.push(tag);
 
@@ -704,7 +700,7 @@ public class AndroidManifestXMLReader {
                 final Tag tag = Tag.fromString(qName);
                 final ParserItem handler = tag.getHandler();
                 if (handler != null) {
-                    handler.leave();
+                    handler.leave(manager);
                 }
             }
         }
