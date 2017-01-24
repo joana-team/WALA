@@ -142,11 +142,6 @@ public class AndroidModel /* makes SummarizedMethod */
 
     private IProgressMonitor monitor;
     private int maxProgress;
- 
-    /*
-     *  static: "boot" only once. How to assert done by the right one?
-     */
-    protected static boolean doBoot = true;
 
     protected IClass klass;
     protected boolean built;
@@ -251,8 +246,6 @@ public class AndroidModel /* makes SummarizedMethod */
         this.monitor = manager.getProgressMonitor();
         this.maxProgress = entrypoints.size();
 
-        AndroidModel.doBoot &= manager.getDoBootSequence();
-
         // BUILD
         this.monitor.beginTask("Building " + name, this.maxProgress);
         populate(entrypoints);
@@ -349,7 +342,7 @@ public class AndroidModel /* makes SummarizedMethod */
         //
         //  Add preparing code to the model
         //
-        if (AndroidModel.doBoot) {
+        if (manager.getDoBootSequence()) {
 //            final Set<Parameter> allActivities = HashSetFactory.make(modelAcc.allExtend(AndroidTypes.ActivityName, getClassHierarchy()));
             //assert(allActivities.size() > 0) : "There are no Activities in the Model"; // XXX
 //            final IntentStarters.StartInfo toolInfo = IntentStarters.StartInfo.makeContextFree(null);
