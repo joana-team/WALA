@@ -118,7 +118,7 @@ public final class AndroidEntryPointLocator {
         WITH_ANDROID
     }
 
-    private final static List<AndroidPossibleEntryPoint> possibleEntryPoints = new ArrayList<>();
+    private final List<AndroidPossibleEntryPoint> possibleEntryPoints = new ArrayList<>();
     protected final Set<LocatorFlags> flags;
     private final AndroidEntryPointManager manager;
     public AndroidEntryPointLocator(AndroidEntryPointManager manager, final Set<LocatorFlags> flags) {
