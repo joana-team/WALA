@@ -150,7 +150,12 @@ public class AndroidEntryPoint extends DexEntryPoint {
      */
     public static class ExecutionOrderComperator implements Comparator<AndroidEntryPoint> {
         @Override public int compare(AndroidEntryPoint a, AndroidEntryPoint b) {
-            return a.order.compareTo(b.order);
+            int cmpOrder = a.order.compareTo(b.order);
+            if (cmpOrder != 0) {
+                return cmpOrder;
+            } else {
+                return a.getMethod().getReference().toString().compareTo(b.getMethod().getReference().toString());
+            }
         }
     }
 
