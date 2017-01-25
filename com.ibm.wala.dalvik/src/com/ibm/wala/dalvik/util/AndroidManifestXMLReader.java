@@ -584,13 +584,18 @@ public class AndroidManifestXMLReader {
 
             if (!names.isEmpty()) {
                 for (String name : names) {
-                    if (urls.isEmpty()) urls.add(null);
-                    for (String url : urls) {
-                        logger.info("New Intent ({}, {})", name, url);
-                        final Intent intent = AndroidSettingFactory.intent(manager, name, url);
+                    if (urls.isEmpty()) {
+                        logger.info("New Intent ({}, {})", name, null);
+                        final Intent intent = AndroidSettingFactory.intent(manager, name, null);
                         attributesHistory.get(self).push(intent);
+                    } else {
+                        for (String url : urls) {
+                            logger.info("New Intent ({}, {})", name, url);
+                            final Intent intent = AndroidSettingFactory.intent(manager, name, url);
+                            attributesHistory.get(self).push(intent);
+                        }
                     }
-            }
+                }
             } else {
             /**
              *  Previously, an exception was thrown but in fact there is no need to crash here.
