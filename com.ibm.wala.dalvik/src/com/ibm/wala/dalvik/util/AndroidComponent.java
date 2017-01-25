@@ -92,7 +92,7 @@ public enum AndroidComponent {
     GPS_NMEA_LISTENER ("Landroid/location/GpsStatus$NmeaListener", "GpsNmeaListener"),        
     UNKNOWN((String)null, "NULL");
 
-    private TypeReference tRef;
+    private final TypeReference tRef;
     private final TypeName type;
     private final String prettyName;
     
@@ -108,13 +108,13 @@ public enum AndroidComponent {
             throw new IllegalArgumentException("The prettyName may not contain one of the reserved characters " +
                     "., /, $ or whitespace. The given name was " + prettyName);
         }
-        this.tRef = null;
         this.prettyName = prettyName;
         if (type != null) {
             this.type = TypeName.findOrCreate(type); 
         } else {
             this.type = null;
         }
+        this.tRef = makeReference();
     }
 
     public static boolean isAndroidComponent(final TypeReference T, final IClassHierarchy cha) {
@@ -159,28 +159,30 @@ public enum AndroidComponent {
      *  Generates a TypeReference for the component.
      */
     /* package private */ TypeReference toReference() {
-        if (this.tRef != null ) {
-            return this.tRef;
-        } else if (this.type == null) {
+        return this.tRef;
+    }
+
+    private TypeReference makeReference() {
+        TypeReference tRef;
+        if (this.type == null) {
             return null;
         } else {
-            this.tRef = TypeReference.find(ClassLoaderReference.Primordial, this.type);
-            if (this.tRef == null) {
+            tRef = TypeReference.find(ClassLoaderReference.Primordial, this.type);
+            if (tRef == null) {
                 /* { DEBUG
                     System.out.println("AndroidComponent WARNING: TypeReference.find did not resolve " + this.type.toString());
                 } // */
-                this.tRef = TypeReference.findOrCreate(ClassLoaderReference.Primordial, this.type);
+                tRef = TypeReference.findOrCreate(ClassLoaderReference.Primordial, this.type);
             }
-            if (this.tRef == null) {
+            if (tRef == null) {
                 throw new IllegalStateException("Unable to resolve " + this.type.toString() + " in Primordial-Loader. " +
                         "Perhaps the Android-Stubs used are the wrong ones: The analysis needs a view more functions, " +
                         "than the Vanilla-Stubs offer. A script 'stubsBuilder.sh' should have been bundled to generate " +
                         "these.");
             }
-            return this.tRef;
+            return tRef;
         }
     }
-
     /**
      *  Returns the Element the type matches exactly the given type.
      *
