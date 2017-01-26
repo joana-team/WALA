@@ -301,7 +301,7 @@ public class IntentContextSelector implements ContextSelector {
                 callee.getSelector().equals(Selector.make("setClassName(Ljava/lang/String;Ljava/lang/String;)Landroid/content/Intent;")) ||
                 callee.getSelector().equals(Selector.make("setClassName(Landroid/content/Context;Ljava/lang/String;)Landroid/content/Intent;"))) {
             final InstanceKey self = actualParameters[0];
-            final InstanceKey actionKey = actualParameters[2];
+            final InstanceKey actionKey = actualParameters[1];
             final Intent intent = intents.find(self);
 
             if (this.manager.isAllowIntentRerouting()) {
