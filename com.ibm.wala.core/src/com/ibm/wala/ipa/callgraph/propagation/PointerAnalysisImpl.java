@@ -120,7 +120,9 @@ public class PointerAnalysisImpl extends AbstractPointerAnalysis {
         ConstantKey<?> i = (ConstantKey<?>) ifk.getInstanceKey();
         if (i.getValue() instanceof String && i.getConcreteType().getClassLoader().getLanguage().equals(Language.JAVA)) {
           StringConstantCharArray contents = StringConstantCharArray.make((ConstantKey<String>) i);
-          instanceKeys.add(contents);
+          synchronized (this) {
+            instanceKeys.add(contents);
+          }
           Collection<InstanceKey> singleton = HashSetFactory.make();
           singleton.add(contents);
           return OrdinalSet.toOrdinalSet(singleton, instanceKeys);
