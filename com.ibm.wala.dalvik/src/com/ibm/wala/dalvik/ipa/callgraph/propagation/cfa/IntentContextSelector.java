@@ -214,12 +214,14 @@ public class IntentContextSelector implements ContextSelector {
                         } else if (calleeSel.equals(Selector.make("<init>(Landroid/content/Intent;)V"))) {
                             logger.debug("Handling Intent(Intent other)");
 
-                            final InstanceKey inIntent = actualParameters[1];
+                            final InstanceKey inIntentKey = actualParameters[1];
 
-                            if (intents.contains(inIntent)) {
-                                intents.put(self, intents.find(inIntent));
+                            if (intents.contains(inIntentKey)) {
+                                intents.put(self, intents.find(inIntentKey));
                             } else {
                                 logger.warn("In Intent-Copy constructor: Unable to find the original");
+                                Intent inIntent = intents.findOrCreate(inIntentKey);
+                                intents.put(self, inIntent);
                             }
                             actionKey = null;
                         } else {
@@ -279,7 +281,7 @@ public class IntentContextSelector implements ContextSelector {
                 callee.getDeclaringClass().getName().equals(AndroidTypes.IntentName)) {
             final InstanceKey self = actualParameters[0];
             final InstanceKey actionKey = actualParameters[1];
-            final Intent intent = intents.find(self);
+            final Intent intent = intents.findOrCreate(self);
 
             if (this.manager.isAllowIntentRerouting()) {
                 logger.warn("Re-Setting the target of Intent {} in {} by {}", intent, site, caller);
@@ -291,7 +293,7 @@ public class IntentContextSelector implements ContextSelector {
         } else if (callee.getSelector().equals(Selector.make("setComponent(Landroid/content/ComponentName;)Landroid/content/Intent;"))) {
             // TODO: We can't extract from ComponentName yet.
             final InstanceKey self = actualParameters[0];
-            final Intent intent = intents.find(self);
+            final Intent intent = intents.findOrCreate(self);
 
             logger.warn("Re-Setting the target of Intent {} in {} by {}", intent, site, caller);
 
