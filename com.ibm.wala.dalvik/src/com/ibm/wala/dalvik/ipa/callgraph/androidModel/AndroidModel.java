@@ -61,6 +61,7 @@ import com.ibm.wala.dalvik.ipa.callgraph.androidModel.stubs.AndroidStartComponen
 import com.ibm.wala.dalvik.ipa.callgraph.androidModel.stubs.ExternalModel;
 import com.ibm.wala.dalvik.ipa.callgraph.androidModel.stubs.SystemServiceModel;
 import com.ibm.wala.dalvik.ipa.callgraph.impl.AndroidEntryPoint;
+import com.ibm.wala.dalvik.ipa.callgraph.propagation.cfa.Intent;
 import com.ibm.wala.dalvik.ipa.callgraph.propagation.cfa.IntentStarters;
 import com.ibm.wala.dalvik.ipa.callgraph.propagation.cfa.IntentStarters.StarterFlags;
 import com.ibm.wala.dalvik.util.AndroidComponent;
@@ -770,13 +771,25 @@ public class AndroidModel /* makes SummarizedMethod */
            
             tool.fetchResults(resultCodes, resultData, allActivities); 
 
-            if (resultCodes.size() == 0) {
-                throw new IllegalStateException("The call " + asMethod + " from " + caller + " failed, as the model " + this.model + 
+            final boolean isExternal = ((Intent) callerNd.getContext().get(Intent.INTENT_KEY)).getType().equals(Intent.IntentType.EXTERNAL_TARGET);
+            if (resultCodes.size() == 0 && !isExternal) {
+                throw new IllegalStateException("The non-External call " + asMethod + " from " + caller + " failed, as the model " + this.model + 
                         " did not take an activity to read the result from");
             }
 
-            mResultCode = tool.addPhi(resultCodes);
-            mResultData = tool.addPhi(resultData);
+            if (resultCodes.size() == 0) {
+            	mResultCode = pm.getUnmanaged(TypeReference.Int, "mResultCode");
+                redirect.addConstant(mResultCode.getNumber(), new ConstantValue(-1));
+                mResultCode.setAssigned();
+            	
+            	mResultData = pm.getUnmanaged(AndroidTypes.Intent, "mResultData");
+                redirect.addConstant(mResultData.getNumber(), new ConstantValue(null));
+                mResultData.setAssigned();
+
+            } else {
+            	mResultCode = tool.addPhi(resultCodes);
+            	mResultData = tool.addPhi(resultData);
+            }
 
             { // Send back the results
                 // TODO: Assert caller is an Activity
