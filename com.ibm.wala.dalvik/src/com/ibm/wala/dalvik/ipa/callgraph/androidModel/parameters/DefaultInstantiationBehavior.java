@@ -134,10 +134,6 @@ public class DefaultInstantiationBehavior extends IInstantiationBehavior {
                     InstanceBehavior.CREATE,
                     Exactness.EXACT,
                     null));
-        behaviours.put(BehaviorKey.mk(TypeName.string2TypeName("Ljava/lang/Object")), new BehviourValue( // TypeReference.JavaLangObjectName is private
-                    InstanceBehavior.CREATE,
-                    Exactness.EXACT,
-                    null));
         behaviours.put(BehaviorKey.mk(
                         TypeReference.findOrCreateArrayOf(TypeReference.JavaLangObject).getName()              
                     ), new BehviourValue(
