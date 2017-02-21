@@ -13,8 +13,9 @@ package com.ibm.wala.util.intset;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.IdentityHashMap;
 import java.util.Iterator;
+import java.util.Map;
 
 import com.ibm.wala.util.collections.HashMapFactory;
 
@@ -32,6 +33,10 @@ public class MutableMapping<T> implements OrdinalSetMapping<T>, Serializable {
   public static <T> MutableMapping<T> make() {
     return new MutableMapping<>();
   }
+  
+  public static <T> MutableMapping<T> makeIdentityMapping() {
+    return new MutableMapping<>(new IdentityHashMap<T, Integer>());
+  }
 
   private Object[] array;
 
@@ -40,13 +45,14 @@ public class MutableMapping<T> implements OrdinalSetMapping<T>, Serializable {
   /**
    * A mapping from object to Integer.
    */
-  final HashMap<T, Integer> map = HashMapFactory.make();
+  final Map<T, Integer> map;
 
   /**
    * @throws IllegalArgumentException if array is null
    */
   @SuppressWarnings("unchecked")
   public MutableMapping(final Object[] array) {
+    map = HashMapFactory.make();
     if (array == null) {
       throw new IllegalArgumentException("array is null");
     }
@@ -58,7 +64,16 @@ public class MutableMapping<T> implements OrdinalSetMapping<T>, Serializable {
     nextIndex = array.length;
   }
 
+  protected MutableMapping(Map<T, Integer> mmap) {
+    if (!mmap.isEmpty()) throw new IllegalArgumentException();
+    
+    map = mmap;
+    array = new Object[INITIAL_CAPACITY];
+    nextIndex = 0;
+  }
+  
   protected MutableMapping() {
+    map = HashMapFactory.make();
     array = new Object[INITIAL_CAPACITY];
     nextIndex = 0;
   }
