@@ -259,8 +259,8 @@ public class PrunedCFG<I, T extends IBasicBlock<I>> extends AbstractNumberedGrap
 
     Set<T> reachable = DFS.getReachableNodes(temp, Collections.singleton(cfg.entry()));
     Set<T> back = DFS.getReachableNodes(GraphInverter.invert(temp), Collections.singleton(cfg.exit()));
-    reachable.retainAll(back);
-    reachable.add(cfg.entry());
+    
+    // We just want to filte edges here, and even if this graph is not connected, all forward-reachable nodes *are* meaningful
     reachable.add(cfg.exit());
         
     this.nodes = new FilteredNodes<>(cfg, reachable);
