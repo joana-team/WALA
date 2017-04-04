@@ -37,7 +37,7 @@ public class ExceptionPrunedCFG {
   }
 
   public static <I, T extends IBasicBlock<I>> PrunedCFG<I, T> make(ControlFlowGraph<I, T> cfg) {
-    return make(cfg, false);
+    return make(cfg, true);
   }
   public static <I, T extends IBasicBlock<I>> PrunedCFG<I, T> make(ControlFlowGraph<I, T> cfg, boolean purgeUnreachable) {
     return PrunedCFG.make(cfg, new ExceptionEdgePruner<>(cfg), purgeUnreachable);
