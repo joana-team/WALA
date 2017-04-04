@@ -38,13 +38,19 @@ public class ExplodedCFGNullPointerAnalysis implements ExceptionPruningAnalysis<
   private final ParameterState initialState;
   private final MethodState mState;
   private final boolean optHasExceptions;
+  private final boolean purgeUnreachable;
 
   public ExplodedCFGNullPointerAnalysis(TypeReference[] ignoredExceptions, IR ir, ParameterState paramState, MethodState mState, boolean optHasExceptions) {
+    this(ignoredExceptions, ir, paramState,mState, optHasExceptions, true);
+  }
+  
+  public ExplodedCFGNullPointerAnalysis(TypeReference[] ignoredExceptions, IR ir, ParameterState paramState, MethodState mState, boolean optHasExceptions, boolean purgeUnreachable) {
     this.ignoredExceptions = (ignoredExceptions != null ? ignoredExceptions.clone() : null);
     this.ir = ir;
     this.initialState = (paramState == null ? ParameterState.createDefault(ir.getMethod()) : paramState);
     this.mState = (mState == null ? MethodState.DEFAULT : mState);
     this.optHasExceptions = optHasExceptions;
+    this.purgeUnreachable = purgeUnreachable;
   }
 
   /*
@@ -54,7 +60,7 @@ public class ExplodedCFGNullPointerAnalysis implements ExceptionPruningAnalysis<
   public int compute(IProgressMonitor progress) throws UnsoundGraphException, CancelException {
     ControlFlowGraph<SSAInstruction, IExplodedBasicBlock> orig = ExplodedControlFlowGraph.make(ir);
 
-    intra = new IntraprocNullPointerAnalysis<>(ir, orig, ignoredExceptions, initialState, mState);
+    intra = new IntraprocNullPointerAnalysis<>(ir, orig, ignoredExceptions, initialState, mState, purgeUnreachable);
     intra.run(progress);
     
     return intra.getNumberOfDeletedEdges();

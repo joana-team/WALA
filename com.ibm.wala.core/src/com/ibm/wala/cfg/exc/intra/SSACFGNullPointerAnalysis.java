@@ -30,12 +30,17 @@ public class SSACFGNullPointerAnalysis implements ExceptionPruningAnalysis<SSAIn
   private final IR ir;
   private final ParameterState initialState;
   private final MethodState mState;
+  private final boolean purgeUnreachable;
   
   public SSACFGNullPointerAnalysis(TypeReference[] ignoredExceptions, IR ir, ParameterState paramState, MethodState mState) {
+    this(ignoredExceptions, ir, paramState, mState, true);
+  }
+  public SSACFGNullPointerAnalysis(TypeReference[] ignoredExceptions, IR ir, ParameterState paramState, MethodState mState, boolean purgeUnreachable) {
     this.ignoredExceptions = (ignoredExceptions != null ? ignoredExceptions.clone() : null);
     this.ir = ir;
     this.initialState = (paramState == null ? ParameterState.createDefault(ir.getMethod()) : paramState);
     this.mState = (mState == null ? MethodState.DEFAULT : mState);
+    this.purgeUnreachable = purgeUnreachable;
   }
   
   /*
@@ -45,7 +50,7 @@ public class SSACFGNullPointerAnalysis implements ExceptionPruningAnalysis<SSAIn
   public int compute(IProgressMonitor progress) throws UnsoundGraphException, CancelException {
     ControlFlowGraph<SSAInstruction, ISSABasicBlock> orig = ir.getControlFlowGraph();
 
-    intra = new IntraprocNullPointerAnalysis<>(ir, orig, ignoredExceptions, initialState, mState);
+    intra = new IntraprocNullPointerAnalysis<>(ir, orig, ignoredExceptions, initialState, mState, purgeUnreachable);
     intra.run(progress);
 
     return intra.getNumberOfDeletedEdges();

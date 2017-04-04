@@ -49,10 +49,22 @@ public class PrunedCFG<I, T extends IBasicBlock<I>> extends AbstractNumberedGrap
    * @throws IllegalArgumentException if cfg is null
    */
   public static <I, T extends IBasicBlock<I>> PrunedCFG<I, T> make(final ControlFlowGraph<I, T> cfg, final EdgeFilter<T> filter) {
+    return make(cfg, filter, true);
+  }
+  
+  /**
+   * @param cfg the original CFG that you want a view of
+   * @param filter an object that selectively filters edges in the original CFG
+   * @param purgeUnreachable if true,  and the exit node becomes disconnected from the entry, all nodes except entry and exit are removed.
+   *                         if false, only those nodes that are not forward-reachable from entry are removed (except for exit, which will always remain). 
+   * @return a view of cfg that includes only edges accepted by the filter.
+   * @throws IllegalArgumentException if cfg is null
+   */
+  public static <I, T extends IBasicBlock<I>> PrunedCFG<I, T> make(final ControlFlowGraph<I, T> cfg, final EdgeFilter<T> filter, final boolean purgeUnreachable) {
     if (cfg == null) {
       throw new IllegalArgumentException("cfg is null");
     }
-    return new PrunedCFG<>(cfg, filter);
+    return new PrunedCFG<>(cfg, filter, purgeUnreachable);
   }
 
   private static class FilteredCFGEdges<I, T extends IBasicBlock<I>> implements NumberedEdgeManager<T> {
@@ -241,7 +253,7 @@ public class PrunedCFG<I, T extends IBasicBlock<I>> extends AbstractNumberedGrap
 
   private final FilteredCFGEdges<I, T> edges;
 
-  private PrunedCFG(final ControlFlowGraph<I, T> cfg, final EdgeFilter<T> filter) {
+  private PrunedCFG(final ControlFlowGraph<I, T> cfg, final EdgeFilter<T> filter, final boolean purgeUnreachable) {
     this.cfg = cfg;
     Graph<T> temp = new AbstractNumberedGraph<T>() {
       private final NumberedEdgeManager<T> edges = new FilteredCFGEdges<>(cfg, cfg, filter);
@@ -260,7 +272,13 @@ public class PrunedCFG<I, T extends IBasicBlock<I>> extends AbstractNumberedGrap
     Set<T> reachable = DFS.getReachableNodes(temp, Collections.singleton(cfg.entry()));
     Set<T> back = DFS.getReachableNodes(GraphInverter.invert(temp), Collections.singleton(cfg.exit()));
     
-    // We just want to filte edges here, and even if this graph is not connected, all forward-reachable nodes *are* meaningful
+    if (purgeUnreachable) {
+      reachable.retainAll(back);
+      reachable.add(cfg.entry());
+    } else {
+      // do nothing:
+      // We just want to filter edges here, and even if this graph is not connected, all forward-reachable nodes *are* meaningful
+    }
     reachable.add(cfg.exit());
         
     this.nodes = new FilteredNodes<>(cfg, reachable);

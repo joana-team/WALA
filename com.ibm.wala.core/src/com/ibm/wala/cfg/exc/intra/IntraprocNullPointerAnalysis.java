@@ -73,11 +73,14 @@ public class IntraprocNullPointerAnalysis<T extends ISSABasicBlock> {
 
   private final ParameterState initialState;
   private final MethodState mState;
+  
+  private final boolean purgeUnreachable;
 
   IntraprocNullPointerAnalysis(IR ir, ControlFlowGraph<SSAInstruction, T> cfg,
-      TypeReference[] ignoreExceptions, ParameterState initialState, MethodState mState) {
+      TypeReference[] ignoreExceptions, ParameterState initialState, MethodState mState, boolean purgeUnreachable) {
     this.cfg = cfg;
     this.ir = ir;
+    this.purgeUnreachable = purgeUnreachable;
     if (ir == null || ir.isEmptyIR()) {
       maxVarNum = -1;
     } else {
@@ -153,7 +156,7 @@ public class IntraprocNullPointerAnalysis<T extends ISSABasicBlock> {
         }
         final NegativeGraphFilter<T> filter = new NegativeGraphFilter<>(deleted);
         
-        final PrunedCFG<SSAInstruction, T> newCfg = PrunedCFG.make(cfg, filter);
+        final PrunedCFG<SSAInstruction, T> newCfg = PrunedCFG.make(cfg, filter, purgeUnreachable);
 
         pruned = newCfg;
       }

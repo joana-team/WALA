@@ -62,8 +62,8 @@ public final class NullPointerAnalysis {
   }
 
   public static ExceptionPruningAnalysis<SSAInstruction, IExplodedBasicBlock>
-  createIntraproceduralExplodedCFGAnalysis(TypeReference[] ignoredExceptions, IR ir, ParameterState paramState, MethodState mState, boolean optHasException) {
-    return new ExplodedCFGNullPointerAnalysis(ignoredExceptions, ir, paramState, mState, optHasException);
+  createIntraproceduralExplodedCFGAnalysis(TypeReference[] ignoredExceptions, IR ir, ParameterState paramState, MethodState mState, boolean optHasException, boolean purgeUnreachable) {
+    return new ExplodedCFGNullPointerAnalysis(ignoredExceptions, ir, paramState, mState, optHasException, purgeUnreachable);
   }
 
   public static ExceptionPruningAnalysis<SSAInstruction, ISSABasicBlock>
@@ -91,15 +91,15 @@ public final class NullPointerAnalysis {
   computeInterprocAnalysis(final TypeReference[] ignoredExceptions, final CallGraph cg,
       final MethodState defaultExceptionMethodState, final IProgressMonitor progress)
       throws WalaException, UnsoundGraphException, CancelException {
-    return computeInterprocAnalysis(ignoredExceptions, cg, defaultExceptionMethodState, progress, false);
+    return computeInterprocAnalysis(ignoredExceptions, cg, defaultExceptionMethodState, progress, false, true);
   }
 
   public static InterprocAnalysisResult<SSAInstruction, IExplodedBasicBlock>
   computeInterprocAnalysis(final TypeReference[] ignoredExceptions, final CallGraph cg,
-      final MethodState defaultExceptionMethodState, final IProgressMonitor progress, boolean optHasExceptions)
+      final MethodState defaultExceptionMethodState, final IProgressMonitor progress, boolean optHasExceptions, boolean purgeUnreachable)
       throws WalaException, UnsoundGraphException, CancelException {
     final InterprocNullPointerAnalysis inpa = InterprocNullPointerAnalysis.compute(ignoredExceptions, cg,
-        defaultExceptionMethodState, progress, optHasExceptions);
+        defaultExceptionMethodState, progress, optHasExceptions, purgeUnreachable);
 
     return inpa.getResult();
   }
