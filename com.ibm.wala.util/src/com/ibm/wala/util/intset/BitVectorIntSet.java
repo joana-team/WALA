@@ -240,6 +240,15 @@ public final class BitVectorIntSet implements MutableIntSet {
   }
 
   /*
+   * (non-Javadoc)
+   * @see com.ibm.wala.util.intset.IntSet#intIteratorSorted()
+   */
+  @Override
+  public IntIterator intIteratorSorted() {
+    return intIterator();
+  }
+
+  /*
    * @see com.ibm.wala.util.intset.IntSet#foreach(com.ibm.wala.util.intset.IntSetAction)
    */
   @Override

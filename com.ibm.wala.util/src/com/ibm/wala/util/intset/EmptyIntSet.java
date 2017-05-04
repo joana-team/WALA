@@ -68,6 +68,11 @@ public class EmptyIntSet implements IntSet {
 	}
 
 	@Override
+	public IntIterator intIteratorSorted() {
+		return emptyIter;
+	}
+
+	@Override
 	public void foreach(IntSetAction action) {
 
 	}

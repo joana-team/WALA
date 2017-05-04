@@ -93,14 +93,12 @@ public class SparseIntSet implements IntSet {
     } else {
       elements = new int[S.size()];
       size = S.size();
-      S.foreach(new IntSetAction() {
-        private int index = 0;
 
-        @Override
-        public void act(int i) {
+      int index = 0;
+      for (IntIterator it = S.intIteratorSorted(); it.hasNext(); ) {
+          final int i = it.next();
           elements[index++] = i;
-        }
-      });
+      }
     }
   }
 
@@ -415,6 +413,15 @@ public class SparseIntSet implements IntSet {
         return elements[i++];
       }
     };
+  }
+
+  /*
+   * (non-Javadoc)
+   * @see com.ibm.wala.util.intset.IntSet#intIteratorSorted()
+   */
+  @Override
+  public IntIterator intIteratorSorted() {
+    return intIterator();
   }
 
   /**

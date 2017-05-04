@@ -11,6 +11,7 @@
 package com.ibm.wala.util.intset;
 
 import com.ibm.wala.util.collections.CompoundIntIterator;
+import com.ibm.wala.util.collections.CompoundIntIteratorSorted;
 import com.ibm.wala.util.collections.EmptyIntIterator;
 import com.ibm.wala.util.debug.Assertions;
 import com.ibm.wala.util.debug.UnimplementedError;
@@ -259,6 +260,19 @@ public class MutableSharedBitVectorIntSet implements MutableIntSet {
     } else {
       return (sharedPart == null) ? privatePart.intIterator() : new CompoundIntIterator(privatePart.intIterator(), sharedPart
           .intIterator());
+    }
+  }
+
+  /*
+   * @see com.ibm.wala.util.intset.IntSet#intIteratorSorted()
+   */
+  @Override
+  public IntIterator intIteratorSorted() {
+    if (privatePart == null) {
+      return (sharedPart == null) ? EmptyIntIterator.instance() : sharedPart.intIteratorSorted();
+    } else {
+      return (sharedPart == null) ? privatePart.intIterator() : new CompoundIntIteratorSorted(privatePart.intIteratorSorted(), sharedPart
+          .intIteratorSorted());
     }
   }
 

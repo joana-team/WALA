@@ -307,6 +307,23 @@ class DebuggingMutableIntSet implements MutableIntSet {
     return primaryImpl.intIterator();
   }
 
+  /*
+   * @see com.ibm.wala.util.intset.IntSet#intIteratorSorted()
+   */
+  @Override
+  public IntIterator intIteratorSorted() {
+    final IntIterator pi = primaryImpl.intIteratorSorted();
+    final IntIterator si = secondaryImpl.intIteratorSorted();
+    while (pi.hasNext()) {
+      assert si.hasNext();
+      int x = pi.next();
+      int y = pi.next();
+      assert x == y;
+    }
+
+    return primaryImpl.intIteratorSorted();
+  }
+
   /**
    * Invoke an action on each element of the Set
    */

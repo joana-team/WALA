@@ -11,6 +11,7 @@
 package com.ibm.wala.util.intset;
 
 import com.ibm.wala.util.collections.CompoundIntIterator;
+import com.ibm.wala.util.collections.CompoundIntIteratorSorted;
 import com.ibm.wala.util.collections.EmptyIntIterator;
 
 public class SemiSparseMutableIntSet implements MutableIntSet {
@@ -321,27 +322,27 @@ public class SemiSparseMutableIntSet implements MutableIntSet {
     return sparsePart.size() + (densePart == null ? 0 : densePart.populationCount());
   }
 
+  private class DensePartIterator implements IntIterator {
+    private int i = -1;
+
+    @Override
+    public boolean hasNext() {
+      return densePart.nextSetBit(i + 1) != -1;
+    }
+
+    @Override
+    public int next() {
+      int next = densePart.nextSetBit(i + 1);
+      i = next;
+      return next;
+    }
+  }
+
   /**
    * @return a perhaps more efficient iterator
    */
   @Override
   public IntIterator intIterator() {
-    class DensePartIterator implements IntIterator {
-      private int i = -1;
-
-      @Override
-      public boolean hasNext() {
-        return densePart.nextSetBit(i + 1) != -1;
-      }
-
-      @Override
-      public int next() {
-        int next = densePart.nextSetBit(i + 1);
-        i = next;
-        return next;
-      }
-    }
-
     if (sparsePart.isEmpty()) {
       if (densePart == null || densePart.isZero()) {
         return EmptyIntIterator.instance();
@@ -353,6 +354,29 @@ public class SemiSparseMutableIntSet implements MutableIntSet {
         return sparsePart.intIterator();
       } else {
         return new CompoundIntIterator(sparsePart.intIterator(), new DensePartIterator());
+      }
+    }
+  }
+
+
+
+  /*
+   * (non-Javadoc)
+   * @see com.ibm.wala.util.intset.IntSet#intIteratorSorted()
+   */
+  @Override
+  public IntIterator intIteratorSorted() {
+    if (sparsePart.isEmpty()) {
+      if (densePart == null || densePart.isZero()) {
+        return EmptyIntIterator.instance();
+      } else {
+        return new DensePartIterator();
+      }
+    } else {
+      if (densePart == null || densePart.isZero()) {
+        return sparsePart.intIterator();
+      } else {
+        return new CompoundIntIteratorSorted(sparsePart.intIteratorSorted(), new DensePartIterator());
       }
     }
   }

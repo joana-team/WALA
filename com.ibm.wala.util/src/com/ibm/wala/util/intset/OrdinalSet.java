@@ -61,6 +61,30 @@ public class OrdinalSet<T> implements Iterable<T> {
     return S.size();
   }
 
+  /**
+   * @return an Iterator that iterates over the elements in the order of their corresponding int indices.
+   */
+  public Iterator<T> iteratorOrdinalSorted() {
+    return new Iterator<T>() {
+      IntIterator it = S.intIteratorSorted();
+
+      @Override
+      public boolean hasNext() {
+        return it.hasNext();
+      }
+
+      @Override
+      public T next() {
+        return mapping.getMappedObject(it.next());
+      }
+
+      @Override
+      public void remove() {
+        Assertions.UNREACHABLE();
+      }
+    };
+  }
+
   @Override
   public Iterator<T> iterator() {
     return new Iterator<T>() {

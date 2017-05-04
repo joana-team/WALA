@@ -57,6 +57,11 @@ public interface IntSet extends Serializable {
   public IntIterator intIterator();
 
   /**
+   * @return an iterator that iterates the elements in order
+   */
+  public IntIterator intIteratorSorted();
+
+  /**
    * Invoke an action on each element of the Set
    */
   public void foreach(IntSetAction action);

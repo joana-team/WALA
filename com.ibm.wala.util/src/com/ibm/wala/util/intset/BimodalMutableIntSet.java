@@ -217,6 +217,14 @@ public class BimodalMutableIntSet implements MutableIntSet {
   }
 
   /*
+   * @see com.ibm.wala.util.intset.IntSet#iteratorSorted()
+   */
+  @Override
+  public IntIterator intIteratorSorted() {
+    return impl.intIteratorSorted();
+  }
+
+  /*
    * @see com.ibm.wala.util.intset.IntSet#foreach(com.ibm.wala.util.intset.IntSetAction)
    */
   @Override
