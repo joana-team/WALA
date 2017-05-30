@@ -115,7 +115,7 @@ public class IntraprocNullPointerAnalysis<T extends ISSABasicBlock> {
             final Iterator<TypeReference> caught = succ.getCaughtExceptionTypes();
             while (caught.hasNext()) {
               final TypeReference t = caught.next();
-              if (t.equals(TypeReference.JavaLangException) || t.equals(TypeReference.JavaLangThrowable)) {
+              if (t.equals(TypeReference.JavaLangThrowable)) {
                 foundCatchAll = true;
               }
             }
