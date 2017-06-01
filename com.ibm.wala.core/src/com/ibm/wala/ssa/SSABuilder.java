@@ -10,8 +10,13 @@
  *******************************************************************************/
 package com.ibm.wala.ssa;
 
-import java.util.Iterator;
 
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.ArrayList;
 import java.util.Arrays;
 import com.ibm.wala.analysis.stackMachine.AbstractIntStackMachine;
 import com.ibm.wala.cfg.IBasicBlock;
@@ -973,6 +978,108 @@ public class SSABuilder extends AbstractIntStackMachine {
       }
     }
 
+    @Override
+    public Map<Integer, Set<String>> getLocalNames() {
+      final Map<Integer, Set<String>> allLocalNames = new HashMap<>();
+      final IBytecodeMethod m = shrikeCFG.getMethod();
+      try {
+        if (!m.hasLocalVariableTable()) {
+          return null;
+        } else {
+          for (int index = 0; index < localStoreMap.length; index++) {
+            final IntPair p = localStoreMap[index];
+            if (p != null ) {
+              final int vn = p.getX();
+              final int localNumber = p.getY();
+              final BasicBlock block = shrikeCFG.getBlockForInstruction(index);
+              final String name;
+              if (block.getLastInstructionIndex() == index) {
+                assert shrikeCFG.getNormalSuccessors(shrikeCFG.getBlockForInstruction(index)).size() == 1;
+                final BasicBlock successor = shrikeCFG.getNormalSuccessors(shrikeCFG.getBlockForInstruction(index)).iterator().next();
+                
+                final int successorIndex = successor.getFirstInstructionIndex();
+                name = m.getLocalVariableName(m.getBytecodeIndex(successorIndex), localNumber);
+              } else {
+                name = m.getLocalVariableName(m.getBytecodeIndex(index+1), localNumber);
+              }
+              
+              // unfortunately, we cannot assert: name == null, because in some rare situations, compilers seem to lack some LocalVariableTable entrys.
+              // Example: try { ... } catch (Throwable t) {}
+              // Here, some compilers to not emit any LocalVariableTable entry for "t".
+              if (name != null) {
+                Set<String> namesForVn = allLocalNames.get(vn);
+                if (namesForVn == null) {
+                  namesForVn = new HashSet<>();
+                  allLocalNames.put(vn, namesForVn);
+                }
+                namesForVn.add(name);
+              }
+            }
+          }
+          for (int blockIndex = 0; blockIndex < block2LocalState.length; blockIndex++) {
+            final int[] localsState = block2LocalState[blockIndex];
+            if (localsState != null) {
+              final BasicBlock block = shrikeCFG.getNode(blockIndex);
+              for (int localNumber = 0; localNumber < localsState.length; localNumber++) {
+                final int vn = localsState[localNumber];
+                final List<String> names = new ArrayList<String>(1) {
+                  private static final long serialVersionUID = 2607892882748705890L;
+
+                  @Override
+                  public boolean add(String e) {
+                    if (e != null) return super.add(e);
+                    return false;
+                  }
+                };
+                
+                if (block.isEntryBlock()) {
+                  final int bcIndex = 0;
+                  names.add(m.getLocalVariableName( bcIndex, localNumber)); 
+                } else if (block.isExitBlock()) {
+                  for (BasicBlock predecessor : shrikeCFG.getNormalPredecessors(block)) {
+                    if (!predecessor.isEntryBlock()) {
+                      assert m.getInstructions()[predecessor.getLastInstructionIndex()] instanceof ReturnInstruction;
+                      final int bcIndex = m.getBytecodeIndex(predecessor.getLastInstructionIndex());
+                      names.add(m.getLocalVariableName(bcIndex, localNumber));
+                    }
+                  }
+                  for (BasicBlock predecessor : shrikeCFG.getExceptionalPredecessors(block)) {
+                    assert !predecessor.isEntryBlock();
+                    
+                    final int iIndex = predecessor.getLastInstructionIndex();
+                    // technically, we would have to query the variable name of localNumber directly *after* iIndex,
+                    // but we cannot do this due to the way LocalVariableTable are build.
+                    // Instead, we query directly *before* iIndex, and use the fact that the instruction at iIndex
+                    // will never write a local variable here, anyway.
+                    assert !(m.getInstructions()[iIndex] instanceof IStoreIndirectInstruction);
+                    assert !(m.getInstructions()[iIndex] instanceof IStoreInstruction);
+                    assert m.getIndirectionData().indirectlyWrittenLocals(iIndex).length == 0; 
+
+                    final int bcIndex = m.getBytecodeIndex(iIndex);
+                    names.add(m.getLocalVariableName(bcIndex, localNumber));
+                  }
+                } else {
+                  final int bcIndex = m.getBytecodeIndex(block.getFirstInstructionIndex());
+                  names.add(m.getLocalVariableName( bcIndex, localNumber));
+                }
+                Set<String> namesForVn = allLocalNames.get(vn);
+                if (namesForVn == null) {
+                  namesForVn = new HashSet<>();
+                  allLocalNames.put(vn, namesForVn);
+                }
+                namesForVn.addAll(names);
+              }
+            }
+          }
+        }
+        return allLocalNames;
+      } catch (InvalidClassFileException e) {
+        e.printStackTrace();
+        Assertions.UNREACHABLE();
+        return null;
+      }
+    }
+    
     /**
      * @param index - index into IR instruction array
      * @param vn - value number

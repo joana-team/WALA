@@ -100,7 +100,7 @@ public class AstIRFactory<T extends IMethod> implements IRFactory<T> {
     }
 
     @Override
-    protected SSA2LocalMap getLocalMap() {
+    public SSA2LocalMap getLocalMap() {
       return localMap;
     }
 

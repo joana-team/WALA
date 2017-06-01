@@ -42,7 +42,11 @@
  */
 package com.ibm.wala.ipa.summaries;
 
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
 import com.ibm.wala.cfg.AbstractCFG;
 import com.ibm.wala.classLoader.IClass;
@@ -109,12 +113,26 @@ public class SummarizedMethodWithNames extends SummarizedMethod {
              */
             @Override
             public String[] getLocalNames(int index, int vn) {
-                if (DEBUG) { System.err.printf("IR.getLocalNames({}, {})", index, vn); }
+              if (DEBUG) { System.err.printf("IR.getLocalNames({}, {})", index, vn); }
+              return getLocalNames(vn);
+            }
+            
+            
+            public String[] getLocalNames(int vn) {
                 if (this.localNames.containsKey(vn)) {
                     return new String[] { this.localNames.get(vn).toString() };
                 } else {
                     return null;
                 }
+            }
+            
+            @Override
+            public Map<Integer, Set<String>> getLocalNames() {
+              final Map<Integer, Set<String>> result = new HashMap<>();
+              for (Entry<Integer, Atom> e : this.localNames.entrySet()) {
+                result.put(e.getKey(), Collections.singleton(e.getValue().toString()));
+              }
+              return result;
             }
         }
 

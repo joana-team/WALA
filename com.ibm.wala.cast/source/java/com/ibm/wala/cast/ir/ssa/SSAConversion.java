@@ -13,6 +13,7 @@ package com.ibm.wala.cast.ir.ssa;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -263,6 +264,26 @@ public class SSAConversion extends AbstractSSAConversion {
     
     @Override
     public String[] getLocalNames(int pc, int vn) {
+      return getLocalNames(vn);
+    }
+    
+    @Override
+    public Map<Integer, Set<String>> getLocalNames() {
+      final int maxValueNumber = getMaxValueNumber();
+      Map<Integer, Set<String>> result = new HashMap<>(maxValueNumber+1);
+      
+      for (int vn = 0; vn <= maxValueNumber ; vn ++) {
+        final HashSet<String> names = new HashSet<>();
+        final String[] localNames = getLocalNames(vn);
+        for (String name : localNames) {
+          if (name != null) names.add(name);
+        }
+        result.put(vn, names);
+      }
+      return result;
+    }
+    
+    public String[] getLocalNames(int vn) {
       
       if (computedNames[vn] != null) {
         return computedNames[vn];
