@@ -10,6 +10,9 @@
  *******************************************************************************/
 package com.ibm.wala.ssa;
 
+import java.util.Iterator;
+
+import java.util.Arrays;
 import com.ibm.wala.analysis.stackMachine.AbstractIntStackMachine;
 import com.ibm.wala.cfg.IBasicBlock;
 import com.ibm.wala.cfg.ShrikeCFG;
@@ -1034,7 +1037,14 @@ public class SSABuilder extends AbstractIntStackMachine {
       int firstInstruction = bb.getFirstInstructionIndex();
       // walk forward from the first instruction to reconstruct the
       // state of the locals at this pc
-      int[] locals = block2LocalState[bb.getNumber()];
+      int[] locals; {
+        int[] localsAtStartOfBlock = block2LocalState[bb.getNumber()];
+        if (localsAtStartOfBlock != null) {
+          locals = Arrays.copyOf(localsAtStartOfBlock, localsAtStartOfBlock.length);
+        } else {
+          locals = null;
+        }
+      }
       for (int i = firstInstruction; i <= pc; i++) {
         if (localStoreMap[i] != null) {
           IntPair p = localStoreMap[i];
