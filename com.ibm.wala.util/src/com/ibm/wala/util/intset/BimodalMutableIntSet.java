@@ -355,6 +355,8 @@ public class BimodalMutableIntSet implements MutableIntSet {
       return impl.containsAny(that);
     } else if (that instanceof BitVectorIntSet) {
       return impl.containsAny(that);
+    } else if (that instanceof EmptyIntSet) {
+      return impl.containsAny(that);
     } else {
       Assertions.UNREACHABLE("unsupported " + that.getClass());
       return false;
