@@ -23,7 +23,8 @@ public final class BitVectorIntSet implements MutableIntSet {
   // population count of -1 means needs to be computed again.
   private int populationCount = 0;
 
-  private static final int UNDEFINED = -1;
+  private static final int UNDEFINED = -2;
+  private static final int NONEMPTY = -1;
 
   private BitVector bitVector = new BitVector(0);
 
@@ -100,8 +101,13 @@ public final class BitVectorIntSet implements MutableIntSet {
     if (set instanceof BitVectorIntSet) {
       BitVector B = ((BitVectorIntSet) set).bitVector;
       int delta = bitVector.orWithDelta(B);
-      populationCount += delta;
-      populationCount = (populationCount == (delta + UNDEFINED)) ? UNDEFINED : populationCount;
+      if (delta > 0) {
+        switch (populationCount) {
+          case UNDEFINED: populationCount = NONEMPTY; break;
+          case NONEMPTY: break;
+          default: populationCount += delta; 
+        }
+      }
       return (delta != 0);
     } else {
       BitVectorIntSet other = new BitVectorIntSet(set);
@@ -119,9 +125,25 @@ public final class BitVectorIntSet implements MutableIntSet {
       throw new IllegalArgumentException("set == null");
     }
     if (set instanceof BitVectorIntSet) {
-      BitVector B = ((BitVectorIntSet) set).bitVector;
+      final BitVectorIntSet bvSet = (BitVectorIntSet) set;
+      final BitVector B = bvSet.bitVector;
+      final int otherPopulationCount = bvSet.populationCount;
       bitVector.or(B);
-      populationCount = UNDEFINED;
+      switch (populationCount) {
+        case NONEMPTY: break;
+        case UNDEFINED:
+          if (otherPopulationCount > 0 || otherPopulationCount == NONEMPTY) {
+            populationCount = NONEMPTY;
+          }
+          break;
+        case 0:
+          populationCount = otherPopulationCount;
+          break;
+        default:
+          if (otherPopulationCount != 0) {
+            populationCount = NONEMPTY;
+          }
+      }
     } else {
       BitVectorIntSet other = new BitVectorIntSet(set);
       addAllOblivious(other);
@@ -137,8 +159,11 @@ public final class BitVectorIntSet implements MutableIntSet {
       return false;
     } else {
       bitVector.set(i);
-      populationCount++;
-      populationCount = (populationCount == (UNDEFINED + 1)) ? UNDEFINED : populationCount;
+      switch (populationCount) {
+        case UNDEFINED: populationCount = NONEMPTY; break;
+        case NONEMPTY: break;
+        default: populationCount++; 
+      }
       return true;
     }
   }
@@ -149,8 +174,11 @@ public final class BitVectorIntSet implements MutableIntSet {
   @Override
   public boolean remove(int i) {
     if (contains(i)) {
-      populationCount--;
-      populationCount = (populationCount == UNDEFINED - 1) ? UNDEFINED : populationCount;
+      switch (populationCount) {
+        case UNDEFINED: break;
+        case NONEMPTY: populationCount = UNDEFINED; break;
+        default: populationCount--; 
+      }
       bitVector.clear(i);
       return true;
     } else {
@@ -199,15 +227,20 @@ public final class BitVectorIntSet implements MutableIntSet {
    */
   @Override
   public boolean isEmpty() {
-    return size() == 0;
+    return populationCount != NONEMPTY && size() == 0;
   }
-
+  
   /*
    * @see com.ibm.wala.util.intset.IntSet#size()
    */
   @Override
   public int size() {
-    populationCount = (populationCount == UNDEFINED) ? bitVector.populationCount() : populationCount;
+    switch (populationCount) {
+      case UNDEFINED:
+      case NONEMPTY:
+        populationCount = bitVector.populationCount(); break;
+      default:
+    }
     return populationCount;
   }
 
@@ -216,7 +249,7 @@ public final class BitVectorIntSet implements MutableIntSet {
    */
   @Override
   public IntIterator intIterator() {
-    populationCount = (populationCount == UNDEFINED) ? bitVector.populationCount() : populationCount;
+    size(); // side-effect: compute population count 
     return new IntIterator() {
       int count = 0;
 
@@ -255,6 +288,7 @@ public final class BitVectorIntSet implements MutableIntSet {
       throw new IllegalArgumentException("null action");
     }
     int nextBit = bitVector.nextSetBit(0);
+    size(); //side-effect: compute population count
     populationCount = (populationCount == UNDEFINED) ? bitVector.populationCount() : populationCount;
     for (int i = 0; i < populationCount; i++) {
       action.act(nextBit);
@@ -263,7 +297,7 @@ public final class BitVectorIntSet implements MutableIntSet {
   }
 
   public SparseIntSet makeSparseCopy() {
-    populationCount = (populationCount == UNDEFINED) ? bitVector.populationCount() : populationCount;
+    size(); //side-effect: compute population count
     int[] elements = new int[populationCount];
     int i = 0;
     int nextBit = -1;
@@ -286,7 +320,7 @@ public final class BitVectorIntSet implements MutableIntSet {
   }
 
   private void slowForeachExcluding(IntSet X, IntSetAction action) {
-    populationCount = (populationCount == UNDEFINED) ? bitVector.populationCount() : populationCount;
+    size(); //side-effect: compute population count
     for (int i = 0, count = 0; count < populationCount; i++) {
       if (contains(i)) {
         if (!X.contains(i)) {
@@ -344,6 +378,7 @@ public final class BitVectorIntSet implements MutableIntSet {
 
   @Override
   public int max() {
+    if (populationCount == 0) return -1;
     return bitVector.max();
   }
 
@@ -385,7 +420,7 @@ public final class BitVectorIntSet implements MutableIntSet {
   /**
    */
   private boolean sameValueInternal(SparseIntSet that) {
-    populationCount = (populationCount == UNDEFINED) ? bitVector.populationCount() : populationCount;
+    size(); //side-effect: compute population count
     if (populationCount != that.size()) {
       return false;
     }
@@ -461,8 +496,10 @@ public final class BitVectorIntSet implements MutableIntSet {
     if (set == null) {
       throw new IllegalArgumentException("set == null");
     }
+    if (populationCount == 0) return false;
     if (set instanceof BitVectorIntSet) {
       BitVectorIntSet b = (BitVectorIntSet) set;
+      if (b.populationCount == 0) return false;
       return !bitVector.intersectionEmpty(b.bitVector);
     } else {
       // TODO: optimize
