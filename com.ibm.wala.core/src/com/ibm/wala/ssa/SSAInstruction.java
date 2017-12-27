@@ -289,7 +289,7 @@ public abstract class SSAInstruction {
    * @see java.lang.Object#equals(java.lang.Object)
    */
   @Override
-  public final boolean equals(Object obj) {
+  public boolean equals(Object obj) {
     if (this == obj)
       return true;
     if (obj != null && obj instanceof SSAInstruction)

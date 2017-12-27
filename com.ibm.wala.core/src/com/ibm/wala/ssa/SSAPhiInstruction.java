@@ -162,6 +162,20 @@ public class SSAPhiInstruction extends SSAInstruction {
   public int hashCode() {
     return 7823 * result;
   }
+  
+  @Override
+  public boolean equals(Object obj) {
+    // We need to override this, since super.equals does not make sense for 
+    // SSAPhiInstructions, which usually have the instruction index 
+    // SSAInstruction.NO_INDEX, see SymbolTable.newPhi(int[] rhs).
+    if (!super.equals(obj)) return false;
+    if (obj != null && obj instanceof SSAPhiInstruction) {
+      SSAPhiInstruction other = (SSAPhiInstruction) obj;
+      return this.result == other.result && Arrays.equals(this.params, other.params);
+    } else {
+      return false;
+    }
+  }
 
   /*
    * @see com.ibm.wala.ssa.Instruction#isFallThrough()
