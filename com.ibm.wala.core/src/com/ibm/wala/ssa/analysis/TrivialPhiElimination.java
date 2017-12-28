@@ -1,43 +1,41 @@
 /*******************************************************************************
- * Copyright (c) 2002 - 2006 IBM Corporation.
+ * Copyright (c) 2002 - 2017 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
  * Contributors:
- *     IBM Corporation - initial API and implementation
+ *     Martin Hecker, KIT - initial API and implementation
  *******************************************************************************/
 package com.ibm.wala.ssa.analysis;
 
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
 import com.ibm.wala.analysis.stackMachine.AbstractIntStackMachine;
 import com.ibm.wala.cfg.ControlFlowGraph;
-import com.ibm.wala.fixedpoint.impl.DefaultFixedPointSolver;
-import com.ibm.wala.fixpoint.BooleanVariable;
-import com.ibm.wala.fixpoint.UnaryOr;
 import com.ibm.wala.ssa.DefUse;
 import com.ibm.wala.ssa.IR;
-import com.ibm.wala.ssa.ISSABasicBlock;
-import com.ibm.wala.ssa.SSACFG;
 import com.ibm.wala.ssa.SSACFG.BasicBlock;
 import com.ibm.wala.ssa.SSAInstruction;
 import com.ibm.wala.ssa.SSAPhiInstruction;
 import com.ibm.wala.ssa.SymbolTable;
-import com.ibm.wala.util.CancelException;
-import com.ibm.wala.util.CancelRuntimeException;
-import com.ibm.wala.util.collections.HashMapFactory;
-import com.ibm.wala.util.collections.HashSetFactory;
 
 /**
- * Eliminate dead assignments (phis) from an SSA IR.
+ * Eliminate trivial phis from an SSA IR.
+ * 
+ * See, e.g., [1] or [2]
+ * 
+ * [1] Sebastian Buchwald, Denis Lohner, Sebastian Ullrich,
+ *     Verified Construction of Static Single Assignment Form
+ *     http://dx.doi.org/10.1145/2892208.2892211
+ * [2] Matthias Braun, Sebastian Buchwald, Sebastian Hack, Roland Leißa, Christoph Mallon, Andreas Zwinkau,
+ *     Simple and Efficient Construction of Static Single Assignment Form
+ *     http://dx.doi.org/10.1007/978-3-642-37051-9_6
  */
 public class TrivialPhiElimination {
 
@@ -45,10 +43,11 @@ public class TrivialPhiElimination {
   private static final int NONE = AbstractIntStackMachine.IGNORE - 1;
   {
     assert !AbstractIntStackMachine.isSpecialValueNumber(NONE);
+    assert NONE < 0;
   }
 
   /**
-   * eliminate dead phis from an ir
+   * eliminate trivial phis from an ir
    * @throws IllegalArgumentException  if ir is null
    */
   public static void perform(IR ir) {
@@ -58,7 +57,10 @@ public class TrivialPhiElimination {
     final DefUse DU = new DefUse(ir);
     final SymbolTable symbolTable = ir.getSymbolTable();
     
-    
+    // A mapping of every value to it's "actual" value, i.e.: the value number
+    // that denotes its value after the removal of trivial phis.
+    // Initially: the identity map.
+    // Only values defined by trivial PhiAssignments will be modified.
     final int[] actualValue = new int[symbolTable.getMaxValueNumber()+1];
     for (int i = 0; i < actualValue.length; i++) {
       actualValue[i] = i;
@@ -67,6 +69,7 @@ public class TrivialPhiElimination {
     final Set<SSAPhiInstruction> workQueue = new TreeSet<>(new Comparator<SSAPhiInstruction>() {
       @Override
       public int compare(SSAPhiInstruction o1, SSAPhiInstruction o2) {
+        // TODO: this probably should  be topologically sorted by the def-use graph, or something.
         return Integer.compare(o2.getDef(), o1.getDef());
       }
     });
@@ -98,10 +101,55 @@ public class TrivialPhiElimination {
       }
     }
     
+    assert isConsistent(actualValue, DU);
+    
     removeTrivialPhis(ir, trivial);
     updateTrivialPhiReferences(ir, actualValue);
+    
+    assert isConsistent(ir);
   }
   
+  private static boolean isConsistent(IR ir) {
+    final DefUse defUse = new DefUse(ir);
+    final SymbolTable symbolTable = ir.getSymbolTable();
+    for (Iterator<SSAInstruction> it = ir.iterateAllInstructions(); it.hasNext(); ) {
+      final SSAInstruction instruction = it.next();
+      if (instruction.hasDef()) {
+        for (int i = 0; i < instruction.getNumberOfDefs(); i++) {
+          assert defUse.getDef(instruction.getDef(i)) == instruction;
+        }
+      }
+      for (int i = 0; i < instruction.getNumberOfUses(); i++) {
+        final int use = instruction.getUse(i);
+        assert AbstractIntStackMachine.isSpecialValueNumber(use)
+            || symbolTable.isConstant(use)
+            || symbolTable.isParameter(use)
+            || defUse.getDef(use) != null;
+      }
+    }
+    return true;
+  }
+  
+  private static boolean isConsistent(int[] actualValue, DefUse defUse) {
+    for(int v = 0; v < actualValue.length; v++) {
+      assert actualValue[v] >= 0;
+      assert actualValue[v] <  actualValue.length;
+      assert actualValue[actualValue[v]] == actualValue[v];
+      if (actualValue[v] != v) {
+        final SSAPhiInstruction phi = (SSAPhiInstruction) defUse.getDef(v);
+        for (int i = 0; i < phi.getNumberOfUses(); i++) {
+          assert actualValue[phi.getUse(i)] == actualValue[v];
+        }
+      }
+    }
+    return true;
+  }
+  
+  /**
+   * Update the references to (i.e.: usages of) removed trivial phis values to their actual values.
+   * @param ir IR to transform
+   * @param actualValue the mapping of value numbers to their actual values.
+   */
   private static void updateTrivialPhiReferences(IR ir, int[] actualValue) {
     for( Iterator<SSAInstruction> it = ir.iterateAllInstructions(); it.hasNext(); ) {
       final SSAInstruction instruction = it.next();
@@ -109,7 +157,7 @@ public class TrivialPhiElimination {
     }
   }
   
-  public static boolean updateActualValueIfIsNewTrivial(SSAPhiInstruction phi, int[] actualValues) {
+  private static boolean updateActualValueIfIsNewTrivial(SSAPhiInstruction phi, int[] actualValues) {
     final int originalDef = phi.getDef();
     assert (!AbstractIntStackMachine.isSpecialValueNumber(phi.getDef()));
     final int def = actualValues[originalDef];
@@ -140,7 +188,7 @@ public class TrivialPhiElimination {
   }
 
   /**
-   * Perform the transformation
+   * Perform the removal of trivial phis.
    * @param ir IR to transform
    * @param trivial the set of trivial phi instructions
    */
