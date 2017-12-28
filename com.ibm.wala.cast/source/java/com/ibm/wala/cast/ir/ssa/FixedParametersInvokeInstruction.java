@@ -111,13 +111,6 @@ public abstract class FixedParametersInvokeInstruction
   }
 
   @Override
-  public int hashCode() {
-    // TODO Auto-generated method stub
-    assert false;
-    return 0;
-  }
-
-  @Override
   public int getUse(int j) {
     if (j < getNumberOfParameters())
       return params[j];
