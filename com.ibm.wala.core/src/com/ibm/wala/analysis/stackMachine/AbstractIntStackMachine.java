@@ -75,6 +75,14 @@ public abstract class AbstractIntStackMachine implements FixedPointConstants {
 
   public static final int IGNORE = -4;
 
+  
+  public static boolean isSpecialValueNumber(int valueNumber) {
+    return valueNumber == AbstractIntStackMachine.TOP
+        || valueNumber == AbstractIntStackMachine.BOTTOM
+        || valueNumber == AbstractIntStackMachine.IGNORE
+        || valueNumber == AbstractIntStackMachine.UNANALYZED;
+  }
+  
   /**
    * The solver
    */

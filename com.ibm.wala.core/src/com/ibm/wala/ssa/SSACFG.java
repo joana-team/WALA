@@ -398,18 +398,18 @@ public class SSACFG implements ControlFlowGraph<SSAInstruction, ISSABasicBlock> 
     /**
      * Remove any phis in the set.
      */
-    public void removePhis(Set<SSAPhiInstruction> toRemove) {
-      int nRemoved = 0;
+    public int removePhis(Set<SSAPhiInstruction> toRemove) {
+      int nStackRemoved = 0;
       if (stackSlotPhis != null) {
         for (int i = 0; i < stackSlotPhis.length; i++) {
           if (toRemove.contains(stackSlotPhis[i])) {
             stackSlotPhis[i] = null;
-            nRemoved++;
+            nStackRemoved++;
           }
         }
       }
-      if (nRemoved > 0) {
-        int newLength = stackSlotPhis.length - nRemoved;
+      if (nStackRemoved > 0) {
+        int newLength = stackSlotPhis.length - nStackRemoved;
         if (newLength == 0) {
           stackSlotPhis = null;
         } else {
@@ -423,17 +423,17 @@ public class SSACFG implements ControlFlowGraph<SSAInstruction, ISSABasicBlock> 
           }
         }
       }
-      nRemoved = 0;
+      int nLocalRemoved = 0;
       if (localPhis != null) {
         for (int i = 0; i < localPhis.length; i++) {
           if (toRemove.contains(localPhis[i])) {
             localPhis[i] = null;
-            nRemoved++;
+            nLocalRemoved++;
           }
         }
       }
-      if (nRemoved > 0) {
-        int newLength = localPhis.length - nRemoved;
+      if (nLocalRemoved > 0) {
+        int newLength = localPhis.length - nLocalRemoved;
         if (newLength == 0) {
           localPhis = null;
         } else {
@@ -447,6 +447,7 @@ public class SSACFG implements ControlFlowGraph<SSAInstruction, ISSABasicBlock> 
           }
         }
       }
+      return nStackRemoved + nLocalRemoved;
     }
 
     public SSAPiInstruction getPiForRefAndPath(int n, Object path) {
