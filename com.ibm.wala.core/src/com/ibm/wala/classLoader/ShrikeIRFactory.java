@@ -29,6 +29,8 @@ import com.ibm.wala.ssa.SSAOptions;
 import com.ibm.wala.ssa.ShrikeIndirectionData;
 import com.ibm.wala.ssa.SymbolTable;
 import com.ibm.wala.ssa.analysis.DeadAssignmentElimination;
+import com.ibm.wala.ssa.analysis.TrivialPhiElimination;
+import com.ibm.wala.types.TypeReference;
 import com.ibm.wala.util.WalaRuntimeException;
 
 /**
@@ -74,6 +76,16 @@ public class ShrikeIRFactory implements IRFactory<IBytecodeMethod<IInstruction>>
       private void eliminateDeadPhis() {
         DeadAssignmentElimination.perform(this);
       }
+      
+      /**
+       * Remove any phis that are trivial.
+       * 
+       * TODO: move this elsewhere?
+       */
+      private void eliminateTrivialPhis() {
+        TrivialPhiElimination.perform(this);
+      }
+      
       private void pruneExceptionsForSafeArrayCreations() {
         DefUse du = new DefUse(this);
         for (int i = 0; i < newInstrs.length; i++) {
@@ -146,6 +158,7 @@ public class ShrikeIRFactory implements IRFactory<IBytecodeMethod<IInstruction>>
         indirectionData = builder.getIndirectionData();
         
         eliminateDeadPhis();
+        eliminateTrivialPhis();
         pruneExceptionsForSafeArrayCreations();
 
         setupLocationMap();
