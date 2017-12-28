@@ -125,5 +125,12 @@ public abstract class FixedParametersInvokeInstruction
       return super.getUse(j);
     }
   }
+  
+  @Override
+  public void substitudeUses(int[] actualValues) {
+    for (int i = 0; i < params.length; i++) {
+      this.params[i] = actualValues[this.params[i]];
+    }
+  }
 
 }

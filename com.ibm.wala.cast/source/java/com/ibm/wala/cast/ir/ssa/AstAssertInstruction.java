@@ -28,7 +28,7 @@ import com.ibm.wala.types.TypeReference;
  * @author Julian Dolby (dolby@us.ibm.com)
  */
 public class AstAssertInstruction extends SSAInstruction {
-  private final int value;
+  private int value;
 
   private final boolean fromSpecification;
 
@@ -48,6 +48,12 @@ public class AstAssertInstruction extends SSAInstruction {
     assert i == 0;
     return value;
   }
+  
+  @Override
+  public void substitudeUses(int[] actualValues) {
+    this.value = actualValues[value];
+    
+  }
 
   @Override
   public SSAInstruction copyForSSA(SSAInstructionFactory insts, int[] defs, int[] uses) {
@@ -64,10 +70,6 @@ public class AstAssertInstruction extends SSAInstruction {
     ((AstInstructionVisitor) v).visitAssert(this);
   }
 
-  @Override
-  public int hashCode() {
-    return 2177 * value;
-  }
 
   @Override
   public Collection<TypeReference> getExceptionTypes() {

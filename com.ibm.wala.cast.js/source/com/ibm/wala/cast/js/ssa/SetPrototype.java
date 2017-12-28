@@ -15,8 +15,8 @@ import com.ibm.wala.ssa.SSAInstructionFactory;
 import com.ibm.wala.ssa.SymbolTable;
 
 public class SetPrototype extends SSAInstruction {
-  private final int object;
-  private final int prototype;
+  private int object;
+  private int prototype;
   
   public SetPrototype(int iindex, int object, int prototype) {
     super(iindex);
@@ -34,6 +34,13 @@ public class SetPrototype extends SSAInstruction {
     assert j >= 0 && j <= 1;
     return (j==0)? object: prototype;
   }
+  
+  @Override
+  public void substitudeUses(int[] actualValues) {
+    this.object    = actualValues[object];
+    this.prototype = actualValues[prototype];
+
+  }
 
   @Override
   public SSAInstruction copyForSSA(SSAInstructionFactory insts, int[] defs, int[] uses) {
@@ -48,15 +55,6 @@ public class SetPrototype extends SSAInstruction {
   @Override
   public void visit(IVisitor v) {
     ((JSInstructionVisitor)v).visitSetPrototype(this);
-  }
-
-  @Override
-  public int hashCode() {
-    final int prime = 31;
-    int result = 1;
-    result = prime * result + object;
-    result = prime * result + prototype;
-    return result;
   }
 
   @Override

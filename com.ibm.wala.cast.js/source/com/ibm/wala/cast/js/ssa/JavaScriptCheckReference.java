@@ -24,7 +24,7 @@ import com.ibm.wala.types.TypeReference;
  * ReferenceError. Otherwise, it's a no-op.
  */
 public class JavaScriptCheckReference extends SSAInstruction {
-  private final int ref;
+  private int ref;
   
   public JavaScriptCheckReference(int iindex, int ref) {
     super(iindex);
@@ -39,11 +39,6 @@ public class JavaScriptCheckReference extends SSAInstruction {
   @Override
   public Collection<TypeReference> getExceptionTypes() {
     return Collections.singleton(JavaScriptTypes.ReferenceError);
-  }
-
-  @Override
-  public int hashCode() {
-    return 87621 * ref;
   }
 
   @Override
@@ -75,6 +70,11 @@ public class JavaScriptCheckReference extends SSAInstruction {
   public int getUse(int i) {
     assert i == 0;
     return ref;
+  }
+  
+  @Override
+  public void substitudeUses(int[] actualValues) {
+    this.ref = actualValues[ref];
   }
   
 }

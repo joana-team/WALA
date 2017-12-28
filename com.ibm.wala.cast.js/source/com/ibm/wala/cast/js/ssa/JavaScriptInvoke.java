@@ -144,6 +144,13 @@ public class JavaScriptInvoke extends MultiReturnValueInvokeInstruction {
       return super.getUse(j);
     }
   }
+  
+  @Override
+  public void substitudeUses(int[] actualValues) {
+    for (int i = 0; i < params.length; i++) {
+      this.params[i] = actualValues[this.params[i]];
+    }
+  }
 
   public int getFunction() {
     return function;
@@ -156,11 +163,6 @@ public class JavaScriptInvoke extends MultiReturnValueInvokeInstruction {
   @Override
   public Collection<TypeReference> getExceptionTypes() {
     return Util.typeErrorExceptions();
-  }
-
-  @Override
-  public int hashCode() {
-    return site.hashCode() * function * 7529;
   }
 
   // public boolean equals(Object obj) {

@@ -57,6 +57,10 @@ public class EnclosingObjectReference extends SSAInstruction {
   public int getNumberOfDefs() {
     return 1;
   }
+  
+  @Override
+  public void substitudeUses(int[] actualValues) {
+  }
 
   public TypeReference getEnclosingType() {
     return type;
@@ -75,11 +79,6 @@ public class EnclosingObjectReference extends SSAInstruction {
   @Override
   public void visit(IVisitor v) {
     ((AstJavaInstructionVisitor) v).visitEnclosingObjectReference(this);
-  }
-
-  @Override
-  public int hashCode() {
-    return lval * type.hashCode();
   }
 
   @Override

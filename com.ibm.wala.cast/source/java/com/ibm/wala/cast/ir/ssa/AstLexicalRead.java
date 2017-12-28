@@ -71,6 +71,10 @@ public class AstLexicalRead extends AstLexicalAccess {
   public int getUse(int i) {
     throw new UnsupportedOperationException();
   }
+  
+  @Override
+  public void substitudeUses(int[] actualValues) {
+  }
 
   @Override
   public String toString(SymbolTable symbolTable) {

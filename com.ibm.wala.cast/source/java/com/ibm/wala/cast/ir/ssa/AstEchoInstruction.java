@@ -52,16 +52,15 @@ public class AstEchoInstruction extends SSAInstruction {
   public int getUse(int i) {
     return rvals[i];
   }
-
+  
   @Override
-  public int hashCode() {
-    int v = 1;
-    for(int i = 0;i < rvals.length; i++) {
-      v *= rvals[i];
+  public void substitudeUses(int[] actualValues) {
+    for (int i = 0; i < rvals.length; i++) {
+      this.rvals[i] = actualValues[rvals[i]];
     }
-
-    return v;
+    
   }
+
 
   @Override
   public String toString(SymbolTable symbolTable) {

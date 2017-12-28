@@ -21,8 +21,8 @@ import com.ibm.wala.types.TypeReference;
 import com.ibm.wala.util.debug.Assertions;
 
 public class JavaScriptInstanceOf extends SSAInstruction {
-  private final int objVal;
-  private final int typeVal;
+  private int objVal;
+  private int typeVal;
   private final int result;
   
   public JavaScriptInstanceOf(int iindex, int result, int objVal, int typeVal) {
@@ -51,11 +51,6 @@ public class JavaScriptInstanceOf extends SSAInstruction {
     return true;
   }
   
-  @Override
-  public int hashCode() {
-     return objVal*31771 + typeVal*23 + result;
-  }
-
   @Override
   public boolean isFallThrough() {
     return true;
@@ -94,5 +89,10 @@ public class JavaScriptInstanceOf extends SSAInstruction {
     case 1: return typeVal;
     default: Assertions.UNREACHABLE(); return -1;
     }
+  }
+  @Override
+  public void substitudeUses(int[] actualValues) {
+    this.objVal  = actualValues[objVal];
+    this.typeVal = actualValues[typeVal];
   }
 }
