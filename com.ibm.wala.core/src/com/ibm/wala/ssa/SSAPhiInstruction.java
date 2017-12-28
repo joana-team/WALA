@@ -138,7 +138,9 @@ public class SSAPhiInstruction extends SSAInstruction {
   @Override
   public void substitudeUses(int[] actualValues) {
     for (int p = 0; p < params.length; p++) {
-      this.params[p] = actualValues[params[p]];
+      if (!AbstractIntStackMachine.isSpecialValueNumber(params[p])) {
+        this.params[p] = actualValues[params[p]];
+      }
     }
     
   }
