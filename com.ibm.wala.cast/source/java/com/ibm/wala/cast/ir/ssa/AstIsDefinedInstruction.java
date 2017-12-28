@@ -34,12 +34,12 @@ public class AstIsDefinedInstruction extends SSAInstruction {
    * value number holding the field string.  If non-negative,
    * fieldRef should be null.
    */
-  private final int fieldVal;
+  private int fieldVal;
 
   /**
    * the base pointer
    */
-  private final int rval;
+  private int rval;
 
   /**
    * gets 1 if the field is defined, 0 otherwise.
@@ -153,15 +153,19 @@ public class AstIsDefinedInstruction extends SSAInstruction {
       return -1;
     }
   }
+  
+  @Override
+  public void substitudeUses(int[] actualValues) {
+    this.rval = actualValues[rval];
+    if (fieldVal != -1) {
+      this.fieldVal = actualValues[fieldVal];
+    }
+    
+  }
 
   @Override
   public boolean isFallThrough() {
     return true;
-  }
-
-  @Override
-  public int hashCode() {
-    return 3077 * fieldVal * rval;
   }
 
   public FieldReference getFieldRef() {

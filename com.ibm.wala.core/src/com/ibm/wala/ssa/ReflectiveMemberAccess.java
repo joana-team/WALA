@@ -15,9 +15,9 @@ package com.ibm.wala.ssa;
  * TODO: document me.
  */
 public abstract class ReflectiveMemberAccess extends SSAInstruction {
-  protected final int objectRef;
+  protected int objectRef;
 
-  protected final int memberRef;
+  protected int memberRef;
 
   protected ReflectiveMemberAccess(int iindex, int objectRef, int memberRef) {
     super(iindex);
@@ -38,6 +38,12 @@ public abstract class ReflectiveMemberAccess extends SSAInstruction {
     assert j <= 1;
     return (j == 0) ? objectRef : memberRef;
   }
+  
+  @Override
+  public void substitudeUses(int[] actualValues) {
+    this.objectRef = actualValues[objectRef];
+    this.memberRef = actualValues[memberRef];
+  }
 
   public int getObjectRef() {
     return objectRef;
@@ -45,11 +51,6 @@ public abstract class ReflectiveMemberAccess extends SSAInstruction {
 
   public int getMemberRef() {
     return memberRef;
-  }
-
-  @Override
-  public int hashCode() {
-    return 6311 * memberRef ^ 2371 * objectRef;
   }
 
   /*

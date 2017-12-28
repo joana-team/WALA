@@ -61,6 +61,11 @@ public class AstLexicalWrite extends AstLexicalAccess {
   public int getUse(int i) {
     return getAccess(i).valueNumber;
   }
+  
+  @Override
+  public void substitudeUses(int[] actualValues) {
+    substitudeAccesses(actualValues);
+  }
 
   @Override
   public int getNumberOfDefs() {

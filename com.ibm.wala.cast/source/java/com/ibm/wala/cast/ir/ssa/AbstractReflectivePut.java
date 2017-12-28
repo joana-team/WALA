@@ -21,7 +21,7 @@ import com.ibm.wala.ssa.SymbolTable;
  * @author Julian Dolby (dolby@us.ibm.com)
  */
 public abstract class AbstractReflectivePut extends ReflectiveMemberAccess {
-  private final int value;
+  private int value;
 
   public AbstractReflectivePut(int iindex, int objectRef, int memberRef, int value) {
     super(iindex, objectRef, memberRef);
@@ -59,6 +59,12 @@ public abstract class AbstractReflectivePut extends ReflectiveMemberAccess {
       return value;
     else
       return super.getUse(index);
+  }
+  
+  @Override
+  public void substitudeUses(int[] actualValues) {
+    super.substitudeUses(actualValues);
+    this.value = actualValues[value];
   }
 
 }

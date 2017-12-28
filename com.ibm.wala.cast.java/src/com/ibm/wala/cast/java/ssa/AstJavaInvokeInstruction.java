@@ -52,10 +52,4 @@ public class AstJavaInvokeInstruction extends FixedParametersInvokeInstruction {
   public Collection<TypeReference> getExceptionTypes() {
     return JavaLanguage.getNullPointerException();
   }
-
-  @Override
-  public int hashCode() {
-    return (site.hashCode() * 7529) + (exception * 9823);
-  }
-
 }

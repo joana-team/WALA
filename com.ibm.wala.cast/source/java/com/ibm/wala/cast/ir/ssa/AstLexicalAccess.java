@@ -46,13 +46,19 @@ public abstract class AstLexicalAccess extends SSAInstruction {
     /**
      * value number used for name where access is being performed (not in the declaring entity)
      */
-    public final int valueNumber;
+    public int valueNumber;
+    
+    /**
+     * The valueNumber at creation time of this access. 
+     */
+    public final int initialValueNumber;
 
     public Access(String name, String definer, TypeReference type, int vn) {
       variableName = name;
       variableDefiner = definer;
       this.type = type;
       valueNumber = vn;
+      initialValueNumber = vn;
     }
 
     public Pair<String,String> getName() {
@@ -61,14 +67,14 @@ public abstract class AstLexicalAccess extends SSAInstruction {
     
     @Override
     public int hashCode() {
-      return variableName.hashCode() * valueNumber;
+      return variableName.hashCode() * initialValueNumber;
     }
 
     @Override
     public boolean equals(Object other) {
       return (other instanceof Access) &&
 	variableName.equals( ((Access)other).variableName ) &&
-	valueNumber == ((Access)other).valueNumber &&
+	initialValueNumber == ((Access)other).initialValueNumber &&
 	( variableDefiner == null?
 	  ((Access)other).variableDefiner == null:
 	  variableDefiner.equals(((Access)other).variableDefiner) );
@@ -102,6 +108,12 @@ public abstract class AstLexicalAccess extends SSAInstruction {
   public int getAccessCount() {
     return accesses.length; 
   }
+  
+  protected void substitudeAccesses(int[] actualValues) {
+    for (int i = 0; i < accesses.length; i++) {
+      this.accesses[i].valueNumber = actualValues[accesses[i].valueNumber];
+    }
+  }
 
   @Override
   public boolean isFallThrough() {
@@ -111,15 +123,6 @@ public abstract class AstLexicalAccess extends SSAInstruction {
   @Override
   public Collection<TypeReference> getExceptionTypes() {
     return null;
-  }
-
-  @Override
-  public int hashCode() {
-    int v = 1;
-    for (Access accesse : accesses)
-      v *= accesse.variableName.hashCode();
-
-    return v;
   }
 
 }

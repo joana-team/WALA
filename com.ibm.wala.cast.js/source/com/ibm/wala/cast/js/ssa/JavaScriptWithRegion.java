@@ -18,7 +18,7 @@ import com.ibm.wala.ssa.SymbolTable;
 import com.ibm.wala.types.TypeReference;
 
 public class JavaScriptWithRegion extends SSAInstruction {
-  private final int expr;
+  private int expr;
   private final boolean isEnter;
   
   public JavaScriptWithRegion(int iindex, int expr, boolean isEnter) {
@@ -35,11 +35,6 @@ public class JavaScriptWithRegion extends SSAInstruction {
   @Override
   public Collection<TypeReference> getExceptionTypes() {
      return null;
-  }
-
-  @Override
-  public int hashCode() {
-    return 353456 * expr * (isEnter? 1 : -1);
   }
 
   @Override
@@ -66,6 +61,11 @@ public class JavaScriptWithRegion extends SSAInstruction {
   public int getUse(int i) {
     assert i == 0;
     return expr;
+  }
+  
+  @Override
+  public void substitudeUses(int[] actualValues) {
+    this.expr = actualValues[expr];
   }
   
 }
