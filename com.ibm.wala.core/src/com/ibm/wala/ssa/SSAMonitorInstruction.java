@@ -18,7 +18,7 @@ public abstract class SSAMonitorInstruction extends SSAInstruction {
   /**
    * The value number of the object being locked or unlocked
    */
-  private final int ref;
+  private int ref;
 
   /**
    * Does this instruction represent a monitorenter?
@@ -73,6 +73,11 @@ public abstract class SSAMonitorInstruction extends SSAInstruction {
   public int getUse(int j) {
     assert j == 0;
     return ref;
+  }
+  
+  @Override
+  public void substitudeUses(int[] actualValues) {
+    this.ref = actualValues[ref];
   }
 
   @Override

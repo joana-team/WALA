@@ -17,7 +17,7 @@ import com.ibm.wala.util.intset.IntIterator;
  * SSA instruction representing a switch statement.
  */
 public class SSASwitchInstruction extends SSAInstruction {
-  private final int val;
+  private int val;
 
   private final int defaultLabel;
 
@@ -85,6 +85,11 @@ public class SSASwitchInstruction extends SSAInstruction {
     assert j <= 1;
     return val;
   }
+  
+  @Override
+  public void substitudeUses(int[] actualValues) {
+    this.val = actualValues[val];
+  }
 
   // public int[] getTargets() {
   // // TODO Auto-generated method stub
@@ -124,11 +129,6 @@ public class SSASwitchInstruction extends SSAInstruction {
         return v;
       }
     };
-  }
-
-  @Override
-  public int hashCode() {
-    return val * 1663 + 3499;
   }
 
   /*

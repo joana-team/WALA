@@ -18,7 +18,7 @@ import com.ibm.wala.types.TypeReference;
 public class SSAInstanceofInstruction extends SSAInstruction {
   private final int result;
 
-  private final int ref;
+  private int ref;
 
   private final TypeReference checkedType;
 
@@ -100,8 +100,8 @@ public class SSAInstanceofInstruction extends SSAInstruction {
   }
 
   @Override
-  public int hashCode() {
-    return ref * 677 ^ result * 3803;
+  public void substitudeUses(int[] actualValues) {
+    this.ref = actualValues[ref];
   }
 
   /*

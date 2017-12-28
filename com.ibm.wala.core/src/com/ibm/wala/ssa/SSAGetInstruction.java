@@ -96,10 +96,12 @@ public abstract class SSAGetInstruction extends SSAFieldAccessInstruction {
     assert j == 0 && getRef() != -1;
     return getRef();
   }
-
+  
   @Override
-  public int hashCode() {
-    return result * 2371 + 6521;
+  public void substitudeUses(int[] actualValues) {
+    if (!isStatic()) {
+      super.substitudeRef(actualValues);
+    }
   }
 
   /*

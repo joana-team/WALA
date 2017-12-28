@@ -17,7 +17,7 @@ import com.ibm.wala.types.FieldReference;
  */
 public abstract class SSAPutInstruction extends SSAFieldAccessInstruction {
 
-  private final int val;
+  private int val;
 
   protected SSAPutInstruction(int iindex, int ref, int val, FieldReference field) {
     super(iindex, field, ref);
@@ -74,14 +74,17 @@ public abstract class SSAPutInstruction extends SSAFieldAccessInstruction {
     assert j == 0 || (!isStatic() && j == 1);
     return (j == 0 && !isStatic()) ? getRef() : val;
   }
+  
+  @Override
+  public void substitudeUses(int[] actualValues) {
+    if (!isStatic()) {
+      super.substitudeRef(actualValues);
+    }
+    this.val = actualValues[val];
+  }
 
   public int getVal() {
     return val;
-  }
-
-  @Override
-  public int hashCode() {
-    return val * 9929 ^ 2063;
   }
 
   /*

@@ -31,7 +31,7 @@ public abstract class SSACheckCastInstruction extends SSAInstruction {
   /**
    * The value being checked by this instruction
    */
-  private final int val;
+  private int val;
 
   /**
    * The types for which this instruction checks; the assignment succeeds if the val is a subtype of one of these types
@@ -136,6 +136,11 @@ public abstract class SSACheckCastInstruction extends SSAInstruction {
     assert j == 0;
     return val;
   }
+  
+  @Override
+  public void substitudeUses(int[] actualValues) {
+    this.val = actualValues[val];
+  }
 
   /**
    * @deprecated the system now supports multiple types, so this
@@ -159,10 +164,6 @@ public abstract class SSACheckCastInstruction extends SSAInstruction {
     return val;
   }
 
-  @Override
-  public int hashCode() {
-    return result * 7529 + val;
-  }
 
   /*
    * @see com.ibm.wala.ssa.Instruction#isPEI()

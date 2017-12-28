@@ -34,12 +34,12 @@ public class SSAAddressOfInstruction extends SSAInstruction {
    * 
    * If we're taking the address of an array element or a field of an object, then this is the base pointer.
    */
-  private final int addressVal;
+  private int addressVal;
 
   /**
    * If we're taking the address of an array element, this is the array index. Otherwise, this is -1.
    */
-  private final int indexVal;
+  private int indexVal;
 
   /**
    * If we're taking the address of a field, this is the field reference. Otherwise, this is null.
@@ -98,11 +98,6 @@ public class SSAAddressOfInstruction extends SSAInstruction {
   }
 
   @Override
-  public int hashCode() {
-    return lval * 99701 + addressVal;
-  }
-
-  @Override
   public boolean isFallThrough() {
     return true;
   }
@@ -152,5 +147,11 @@ public class SSAAddressOfInstruction extends SSAInstruction {
     } else {
       return indexVal;
     }
+  }
+  
+  @Override
+  public void substitudeUses(int[] actualValues) {
+    this.addressVal = actualValues[addressVal];
+    this.indexVal   = actualValues[indexVal];
   }
 }

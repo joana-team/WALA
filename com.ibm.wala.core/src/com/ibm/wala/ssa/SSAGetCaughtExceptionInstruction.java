@@ -91,8 +91,32 @@ public class SSAGetCaughtExceptionInstruction extends SSAInstruction {
   }
 
   @Override
+  public void substitudeUses(int[] actualValues) {
+  }
+
+  @Override
   public int hashCode() {
-    return 2243 * exceptionValueNumber;
+    final int prime = 31;
+    int result = iindex;
+    result = prime * result + bbNumber;
+    result = prime * result + exceptionValueNumber;
+    return result;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj)
+      return true;
+    if (!(obj instanceof SSAGetCaughtExceptionInstruction))
+      return false;
+    SSAGetCaughtExceptionInstruction other = (SSAGetCaughtExceptionInstruction) obj;
+    if (iindex != other.iindex)
+      return false;
+    if (bbNumber != other.bbNumber)
+      return false;
+    if (exceptionValueNumber != other.exceptionValueNumber)
+      return false;
+    return true;
   }
 
   /*

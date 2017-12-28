@@ -20,9 +20,9 @@ import com.ibm.wala.types.TypeReference;
 public class SSAConditionalBranchInstruction extends SSAInstruction {
   private final IConditionalBranchInstruction.IOperator operator;
 
-  private final int val1;
+  private int val1;
 
-  private final int val2;
+  private int val2;
 
   private final TypeReference type;
 
@@ -94,6 +94,12 @@ public class SSAConditionalBranchInstruction extends SSAInstruction {
     assert j <= 1;
     return (j == 0) ? val1 : val2;
   }
+  
+  @Override
+  public void substitudeUses(int[] actualValues) {
+    this.val1 = actualValues[val1];
+    this.val2 = actualValues[val2];
+  }
 
   public TypeReference getType() {
     return type;
@@ -105,11 +111,6 @@ public class SSAConditionalBranchInstruction extends SSAInstruction {
 
   public boolean isIntegerComparison() {
     return type == TypeReference.Int;
-  }
-
-  @Override
-  public int hashCode() {
-    return 7151 * val1 + val2;
   }
 
   /*

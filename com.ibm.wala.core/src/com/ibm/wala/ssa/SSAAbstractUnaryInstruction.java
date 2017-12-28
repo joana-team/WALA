@@ -17,7 +17,7 @@ public abstract class SSAAbstractUnaryInstruction extends SSAInstruction {
 
   protected final int result;
 
-  protected final int val;
+  protected int val;
 
   protected SSAAbstractUnaryInstruction(int iindex, int result, int val) {
     super(iindex);
@@ -67,8 +67,8 @@ public abstract class SSAAbstractUnaryInstruction extends SSAInstruction {
   }
 
   @Override
-  public int hashCode() {
-    return val * 1663 ^ result * 4027;
+  public void substitudeUses(int[] actualValues) {
+    this.val = actualValues[val];
   }
 
   /*

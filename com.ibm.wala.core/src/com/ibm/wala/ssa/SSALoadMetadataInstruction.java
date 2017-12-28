@@ -62,11 +62,6 @@ public abstract class SSALoadMetadataInstruction extends SSAInstruction {
   }
 
   @Override
-  public int hashCode() {
-    return token.hashCode() * lval;
-  }
-
-  @Override
   public boolean isPEI() {
     return true;
   }
@@ -90,6 +85,10 @@ public abstract class SSALoadMetadataInstruction extends SSAInstruction {
   @Override
   public int getNumberOfDefs() {
     return 1;
+  }
+  
+  @Override
+  public void substitudeUses(int[] actualValues) {
   }
 
   @Override

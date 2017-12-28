@@ -15,7 +15,7 @@ package com.ibm.wala.ssa;
  * An instruction which unconditionally throws an exception
  */
 public abstract class SSAAbstractThrowInstruction extends SSAInstruction {
-  private final int exception;
+  private int exception;
 
   public SSAAbstractThrowInstruction(int iindex, int exception) {
     super(iindex);
@@ -46,10 +46,10 @@ public abstract class SSAAbstractThrowInstruction extends SSAInstruction {
     }
     return exception;
   }
-
+  
   @Override
-  public int hashCode() {
-    return 7529 + exception * 823;
+  public void substitudeUses(int[] actualValues) {
+    this.exception = actualValues[exception];
   }
 
   /*

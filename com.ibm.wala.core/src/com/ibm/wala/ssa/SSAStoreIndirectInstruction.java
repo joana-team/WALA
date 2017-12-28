@@ -48,11 +48,6 @@ public class SSAStoreIndirectInstruction extends SSAInstruction {
   }
 
   @Override
-  public int hashCode() {
-    return addressVal * 353456 * rval;
-  }
-
-  @Override
   public boolean isFallThrough() {
     return true;
   }
@@ -65,6 +60,11 @@ public class SSAStoreIndirectInstruction extends SSAInstruction {
   @Override
   public void visit(IVisitor v) {
     ((IVisitorWithAddresses)v).visitStoreIndirect(this);
+  }
+  
+  @Override
+  public void substitudeUses(int[] actualValues) {
+    Assertions.UNREACHABLE("unimplemented");
   }
 
 }

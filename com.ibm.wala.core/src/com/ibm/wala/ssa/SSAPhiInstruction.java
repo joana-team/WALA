@@ -134,6 +134,14 @@ public class SSAPhiInstruction extends SSAInstruction {
     }
     return params[j];
   }
+  
+  @Override
+  public void substitudeUses(int[] actualValues) {
+    for (int p = 0; p < params.length; p++) {
+      this.params[p] = actualValues[params[p]];
+    }
+    
+  }
 
   /**
    * Clients should not call this.  only for SSA builders.
@@ -160,7 +168,7 @@ public class SSAPhiInstruction extends SSAInstruction {
 
   @Override
   public int hashCode() {
-    return 7823 * result;
+    return result;
   }
   
   @Override
@@ -168,10 +176,9 @@ public class SSAPhiInstruction extends SSAInstruction {
     // We need to override this, since super.equals does not make sense for 
     // SSAPhiInstructions, which usually have the instruction index 
     // SSAInstruction.NO_INDEX, see SymbolTable.newPhi(int[] rhs).
-    if (!super.equals(obj)) return false;
     if (obj != null && obj instanceof SSAPhiInstruction) {
       SSAPhiInstruction other = (SSAPhiInstruction) obj;
-      return this.result == other.result && Arrays.equals(this.params, other.params);
+      return this.result == other.result && this.iindex == other.iindex && Arrays.equals(this.params, other.params);
     } else {
       return false;
     }

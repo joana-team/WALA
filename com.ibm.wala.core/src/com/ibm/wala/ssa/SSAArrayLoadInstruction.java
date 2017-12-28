@@ -80,10 +80,4 @@ public abstract class SSAArrayLoadInstruction extends SSAArrayReferenceInstructi
     return 1;
   }
 
-  @Override
-  public int hashCode() {
-    return 6311 * result ^ 2371 * getArrayRef() + getIndex();
-  }
-
-
 }

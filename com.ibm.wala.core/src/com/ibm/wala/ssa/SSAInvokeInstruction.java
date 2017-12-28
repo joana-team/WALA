@@ -133,10 +133,13 @@ public abstract class SSAInvokeInstruction extends SSAAbstractInvokeInstruction 
     }
     return params[j];
   }
-
+  
   @Override
-  public int hashCode() {
-    return (site.hashCode() * 7529) + (exception * 9823);
+  public void substitudeUses(int[] actualValues) {
+    for (int p = 0; p < params.length; p++) {
+      params[p] = actualValues[params[p]];
+    }
   }
+
 
 }

@@ -35,5 +35,4 @@ public class SSAInvokeDynamicInstruction extends SSAInvokeInstruction {
   public BootstrapMethod getBootstrap() {
     return bootstrap;
   }
-
 }

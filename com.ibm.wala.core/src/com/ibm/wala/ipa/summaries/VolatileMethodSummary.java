@@ -110,6 +110,8 @@ public class VolatileMethodSummary {
         public String toString (SymbolTable symbolTable) { return "Reserved Slot"; }
         @Override
         public void visit (IVisitor v) { throw new IllegalStateException(); }
+        @Override
+        public void substitudeUses(int[] actualValues) { throw new IllegalStateException(); }
     }
     private static final Reserved RESERVED = new Reserved();
 
