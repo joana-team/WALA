@@ -95,5 +95,23 @@ public class SSAPiInstruction extends SSAUnaryOpInstruction {
   public int getVal() {
     return getUse(0);
   }
+  
+  @Override
+  public int hashCode() {
+    return result;
+  }
+  
+  @Override
+  public boolean equals(Object obj) {
+    // We need to override this, since super.equals does not make sense for 
+    // SSAPhiInstructions, which usually have the instruction index 
+    // SSAInstruction.NO_INDEX, see SymbolTable.newPhi(int[] rhs).
+    if (obj != null && obj instanceof SSAPiInstruction) {
+      SSAPiInstruction other = (SSAPiInstruction) obj;
+      return this.result == other.result && this.iindex == other.iindex && this.successorBlock == other.successorBlock && this.piBlock == other.piBlock && this.cause.equals(other.cause);
+    } else {
+      return false;
+    }
+  }
 
 }
