@@ -17,7 +17,7 @@ import com.ibm.wala.types.TypeReference;
  */
 public abstract class SSAArrayStoreInstruction extends SSAArrayReferenceInstruction {
 
-  private final int value;
+  private int value;
 
   protected SSAArrayStoreInstruction(int iindex, int arrayref, int index, int value, TypeReference elementType) {
     super(iindex, arrayref, index, elementType);
@@ -79,10 +79,12 @@ public abstract class SSAArrayStoreInstruction extends SSAArrayReferenceInstruct
     else
       return super.getUse(j);
   }
-
+  
   @Override
-  public int hashCode() {
-    return 6311 * value ^ 2371 * getArrayRef() + getIndex();
+  public void substitudeUses(int[] actualValues) {
+    super.substitudeUses(actualValues);
+    this.value = actualValues[value];
   }
+
 
 }
