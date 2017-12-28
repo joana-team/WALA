@@ -251,9 +251,8 @@ public abstract class SSAInstruction {
   public int getUse(int j) throws UnsupportedOperationException {
     throw new UnsupportedOperationException();
   }
-
-  @Override
-  public abstract int hashCode();
+  
+  public abstract void substitudeUses(int[] actualValues);
 
   /**
    * @return true iff this instruction may throw an exception.
@@ -290,6 +289,9 @@ public abstract class SSAInstruction {
    */
   @Override
   public boolean equals(Object obj) {
+    if (iindex < 0) {
+      throw new UnsupportedOperationException();
+    }
     if (this == obj)
       return true;
     if (obj != null && obj instanceof SSAInstruction)
@@ -297,4 +299,12 @@ public abstract class SSAInstruction {
     else
       return false;
   }
+
+  @Override
+  public int hashCode() {
+    if (iindex < 0) {
+      throw new UnsupportedOperationException();
+    }
+    return iindex;
+  }  
 }

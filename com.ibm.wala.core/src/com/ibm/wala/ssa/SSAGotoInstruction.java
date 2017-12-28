@@ -53,8 +53,7 @@ public class SSAGotoInstruction extends SSAInstruction {
   }
 
   @Override
-  public int hashCode() {
-    return 1409 + 17 * target;
+  public void substitudeUses(int[] actualValues) {
   }
 
   /*

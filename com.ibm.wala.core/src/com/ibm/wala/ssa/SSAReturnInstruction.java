@@ -11,6 +11,8 @@
 
 package com.ibm.wala.ssa;
 
+import com.ibm.wala.analysis.stackMachine.AbstractIntStackMachine;
+
 /**
  * A return instruction.
  */
@@ -19,7 +21,7 @@ public class SSAReturnInstruction extends SSAInstruction {
   /**
    * value number of the result. By convention result == -1 means returns void.
    */
-  private final int result;
+  private int result;
 
   private final boolean isPrimitive;
 
@@ -86,6 +88,14 @@ public class SSAReturnInstruction extends SSAInstruction {
     }
     return result;
   }
+  
+  @Override
+  public void substitudeUses(int[] actualValues) {
+    if (AbstractIntStackMachine.isSpecialValueNumber(result)) {
+      return;
+    }
+    this.result = actualValues[result];
+  }
 
   /**
    * @return true iff this return instruction returns a primitive value
@@ -100,11 +110,6 @@ public class SSAReturnInstruction extends SSAInstruction {
 
   public boolean returnsVoid() {
     return result == -1;
-  }
-
-  @Override
-  public int hashCode() {
-    return result * 8933;
   }
 
   /*

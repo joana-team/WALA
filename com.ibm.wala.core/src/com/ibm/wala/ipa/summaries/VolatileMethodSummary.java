@@ -104,6 +104,7 @@ public class VolatileMethodSummary {
         public boolean isFallThrough() { return true; }
         public String toString (SymbolTable symbolTable) { return "Reserved Slot"; }
         public void visit (IVisitor v) { throw new IllegalStateException(); }
+        public void substitudeUses(int[] actualValues) { throw new IllegalStateException(); }
     }
     private static final Reserved RESERVED = new Reserved();
 

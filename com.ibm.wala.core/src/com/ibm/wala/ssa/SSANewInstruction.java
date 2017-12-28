@@ -137,11 +137,6 @@ public abstract class SSANewInstruction extends SSAInstruction {
   }
 
   @Override
-  public int hashCode() {
-    return result * 7529 + site.getDeclaredType().hashCode();
-  }
-
-  @Override
   public int getNumberOfUses() {
     return params == null ? 0 : params.length;
   }
@@ -151,6 +146,17 @@ public abstract class SSANewInstruction extends SSAInstruction {
     assert params != null : "expected params but got null in " + this.toString();
     assert params.length > j : "found too few parameters";
     return params[j];
+  }
+  
+  @Override
+  public void substitudeUses(int[] actualValues) {
+    if (params == null) {
+      return;
+    }
+    for (int p = 0; p < params.length; p++) {
+      this.params[p] = actualValues[params[p]];
+    }
+    
   }
 
   /*

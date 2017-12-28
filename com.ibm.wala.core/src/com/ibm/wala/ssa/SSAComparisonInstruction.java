@@ -18,9 +18,9 @@ import com.ibm.wala.shrikeBT.IComparisonInstruction;
 public class SSAComparisonInstruction extends SSAInstruction {
   private final int result;
 
-  private final int val1;
+  private int val1;
 
-  private final int val2;
+  private int val2;
 
   private final IComparisonInstruction.Operator operator;
 
@@ -97,10 +97,11 @@ public class SSAComparisonInstruction extends SSAInstruction {
     assert j <= 1;
     return (j == 0) ? val1 : val2;
   }
-
+  
   @Override
-  public int hashCode() {
-    return 6311 * result ^ 2371 * val1 + val2;
+  public void substitudeUses(int[] actualValues) {
+    this.val1 = actualValues[val1];
+    this.val2 = actualValues[val2];
   }
 
   /*

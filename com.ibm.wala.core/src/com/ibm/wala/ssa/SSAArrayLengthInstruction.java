@@ -17,7 +17,7 @@ package com.ibm.wala.ssa;
 public abstract class SSAArrayLengthInstruction extends SSAInstruction {
   private final int result;
 
-  private final int arrayref;
+  private int arrayref;
 
   protected SSAArrayLengthInstruction(int iindex, int result, int arrayref) {
     super(iindex);
@@ -97,11 +97,12 @@ public abstract class SSAArrayLengthInstruction extends SSAInstruction {
     }
     return arrayref;
   }
-
+  
   @Override
-  public int hashCode() {
-    return arrayref * 7573 + result * 563;
+  public void substitudeUses(int[] actualValues) {
+    this.arrayref = actualValues[arrayref];
   }
+
 
   /*
    * @see com.ibm.wala.ssa.Instruction#isPEI()

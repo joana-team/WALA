@@ -13,8 +13,8 @@ package com.ibm.wala.ssa;
 public abstract class SSAAbstractBinaryInstruction extends SSAInstruction {
 
   protected final int result;
-  protected final int val1;
-  protected final int val2;
+  protected int val1;
+  protected int val2;
 
   public SSAAbstractBinaryInstruction(int iindex, int result, int val1, int val2) {
     super(iindex);
@@ -62,10 +62,12 @@ public abstract class SSAAbstractBinaryInstruction extends SSAInstruction {
     assert j <= 1;
     return (j == 0) ? val1 : val2;
   }
-
+  
   @Override
-  public int hashCode() {
-    return 6311 * result ^ 2371 * val1 + val2;
+  public void substitudeUses(int[] actualValues) {
+    this.val1 = actualValues[val1];
+    this.val2 = actualValues[val2];
   }
+
 
 }

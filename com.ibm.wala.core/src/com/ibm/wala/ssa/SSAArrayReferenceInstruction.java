@@ -17,9 +17,9 @@ import com.ibm.wala.types.TypeReference;
  */
 public abstract class SSAArrayReferenceInstruction extends SSAInstruction {
 
-  private final int arrayref;
+  private int arrayref;
 
-  private final int index;
+  private int index;
 
   private final TypeReference elementType;
 
@@ -49,6 +49,14 @@ public abstract class SSAArrayReferenceInstruction extends SSAInstruction {
     assert j <= 1;
     return (j == 0) ? arrayref : index;
   }
+  
+  @Override
+  public void substitudeUses(int[] actualValues) {
+    this.arrayref = actualValues[arrayref];
+    this.index    = actualValues[index];
+  }
+  
+  
 
   /**
    * Return the value number of the array reference.

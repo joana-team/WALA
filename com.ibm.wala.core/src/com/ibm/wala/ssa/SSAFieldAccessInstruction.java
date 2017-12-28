@@ -21,7 +21,7 @@ public abstract class SSAFieldAccessInstruction extends SSAInstruction {
 
   private final FieldReference field;
 
-  private final int ref;
+  private int ref;
 
   protected SSAFieldAccessInstruction(int iindex, FieldReference field, int ref) throws IllegalArgumentException {
     super(iindex);
@@ -42,6 +42,10 @@ public abstract class SSAFieldAccessInstruction extends SSAInstruction {
 
   public int getRef() {
     return ref;
+  }
+  
+  protected void substitudeRef(int[] actualValues) {
+    this.ref = actualValues[ref];
   }
 
   public boolean isStatic() {

@@ -18,7 +18,7 @@ import com.ibm.wala.types.TypeReference;
 public abstract class SSAConversionInstruction extends SSAInstruction {
   private final int result;
 
-  private final int val;
+  private int val;
 
   private final TypeReference fromType;
 
@@ -93,10 +93,10 @@ public abstract class SSAConversionInstruction extends SSAInstruction {
     assert j == 0;
     return val;
   }
-
+  
   @Override
-  public int hashCode() {
-    return 6311 * result ^ val;
+  public void substitudeUses(int[] actualValues) {
+    this.val = actualValues[val];
   }
 
   /*
