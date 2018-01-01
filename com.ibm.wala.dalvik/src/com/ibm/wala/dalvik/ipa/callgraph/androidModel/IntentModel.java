@@ -43,8 +43,8 @@ package com.ibm.wala.dalvik.ipa.callgraph.androidModel;
 import com.ibm.wala.dalvik.ipa.callgraph.impl.AndroidEntryPoint;
 import com.ibm.wala.dalvik.util.AndroidComponent;
 import com.ibm.wala.dalvik.util.AndroidEntryPointManager;
-import com.ibm.wala.ipa.callgraph.AnalysisCache;
 import com.ibm.wala.ipa.callgraph.AnalysisOptions;
+import com.ibm.wala.ipa.callgraph.IAnalysisCacheView;
 import com.ibm.wala.ipa.cha.IClassHierarchy;
 import com.ibm.wala.ipa.summaries.SummarizedMethod;
 import com.ibm.wala.util.CancelException;
@@ -71,7 +71,7 @@ public class IntentModel extends AndroidModel {
             ep.belongsTo(AndroidComponent.PROVIDER);
     }
 
-    public IntentModel(final AndroidEntryPointManager manager, final IClassHierarchy cha, final AnalysisOptions options, final AnalysisCache cache, Atom target) {
+    public IntentModel(final AndroidEntryPointManager manager, final IClassHierarchy cha, final AnalysisOptions options, final IAnalysisCacheView cache, Atom target) {
         super(manager, cha, options, cache);
 
         this.target = target;

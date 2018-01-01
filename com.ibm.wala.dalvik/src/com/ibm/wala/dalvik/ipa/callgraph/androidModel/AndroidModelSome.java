@@ -6,8 +6,8 @@ import java.util.List;
 import com.ibm.wala.dalvik.ipa.callgraph.impl.AndroidEntryPoint;
 import com.ibm.wala.dalvik.util.AndroidComponent;
 import com.ibm.wala.dalvik.util.AndroidEntryPointManager;
-import com.ibm.wala.ipa.callgraph.AnalysisCache;
 import com.ibm.wala.ipa.callgraph.AnalysisOptions;
+import com.ibm.wala.ipa.callgraph.IAnalysisCacheView;
 import com.ibm.wala.ipa.cha.IClassHierarchy;
 import com.ibm.wala.types.TypeName;
 
@@ -18,7 +18,7 @@ public class AndroidModelSome extends AndroidModel {
 		final AndroidEntryPointManager manager,
 		final IClassHierarchy cha,
 		final AnalysisOptions options,
-		final AnalysisCache cache,
+		final IAnalysisCacheView cache,
 		final List<String> intents) {
 		super(manager, cha, options, cache);
 		this.targets = new ArrayList<>(intents.size());
