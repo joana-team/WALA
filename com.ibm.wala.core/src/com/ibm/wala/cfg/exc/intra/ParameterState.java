@@ -65,6 +65,10 @@ public class ParameterState extends AbstractVariable<ParameterState> {
     }
   }
 
+  public void setStateUnchecked(int varNum, State state) {
+    params.put(varNum, state);
+  }
+  
   public void setState(int varNum, State state) {
     State prev = params.get(varNum);
     if (prev != null) {
@@ -81,6 +85,11 @@ public class ParameterState extends AbstractVariable<ParameterState> {
         break;
       case NOT_NULL:
         if (!(state == State.BOTH || state == State.NOT_NULL)) {
+          throw new IllegalArgumentException("Try to set " + prev + " to " + state);
+        }
+        break;
+      case BOTH:
+        if (state != State.BOTH) {
           throw new IllegalArgumentException("Try to set " + prev + " to " + state);
         }
         break;

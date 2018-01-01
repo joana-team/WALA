@@ -170,7 +170,7 @@ public final class InterprocNullPointerAnalysis {
 
     if (!startNode.getMethod().isStatic()) {
       // this pointer is never null
-      paramState.setState(0, State.NOT_NULL);
+      paramState.setStateUnchecked(0, State.NOT_NULL);
     }
 
     if (ir == null || ir.isEmptyIR()) {
