@@ -42,7 +42,10 @@ abstract public class BitVectorBase<T extends BitVectorBase> implements Cloneabl
 
   public abstract void and(T other);
 
-  public abstract void andNot(T other);
+  /**
+   * @return true iff all this bits were cleared;
+   */
+  public abstract boolean andNot(T other);
 
   public abstract void or(T other);
 

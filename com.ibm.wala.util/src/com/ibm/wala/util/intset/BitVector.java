@@ -360,15 +360,23 @@ public class BitVector extends BitVectorBase<BitVector> {
   }
 
   @Override
-  public void andNot(BitVector vector) {
+  public boolean andNot(BitVector vector) {
     if (vector == null) {
       throw new IllegalArgumentException("null vector");
     }
+    boolean zeroed = true;
     int ai = 0;
     int bi = 0;
     for (ai = 0, bi = 0; ai < bits.length && bi < vector.bits.length; ai++, bi++) {
-      bits[ai] = bits[ai] & (~vector.bits[bi]);
+      final int oldbits = bits[ai];
+      final int newbits = oldbits & (~vector.bits[bi]);
+      zeroed &= newbits == 0;
+      bits[ai] = newbits;
     }
+    for (; zeroed && ai < bits.length; ai++) {
+      zeroed &= bits[ai] == 0;
+    }
+    return zeroed;
   }
 
   /**

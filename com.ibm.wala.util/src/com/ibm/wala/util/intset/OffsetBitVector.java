@@ -457,23 +457,36 @@ public final class OffsetBitVector extends BitVectorBase<OffsetBitVector> {
   }
 
   @Override
-  public void andNot(OffsetBitVector set) throws IllegalArgumentException {
+  public boolean andNot(OffsetBitVector set) throws IllegalArgumentException {
     if (set == null) {
       throw new IllegalArgumentException("set == null");
     }
     if (this == set) {
       clearAll();
-      return;
+      return true;
     }
 
     int wordDiff = wordDiff(offset, set.offset);
     int maxWord = Math.min(bits.length, set.bits.length - wordDiff);
 
     int i = Math.max(0, -wordDiff);
+    int i0 = i;
+    
+    boolean zeroed = true;
 
     for (; i < maxWord; i++) {
-      bits[i] &= ~set.bits[i + wordDiff];
+      final int oldbits = bits[i];
+      final int newbits = oldbits & (~set.bits[i + wordDiff]);
+      zeroed &= newbits == 0;
+      bits[i] = newbits;
     }
+    for (int j = 0;       zeroed && j < i0;          j++) {
+        zeroed &= bits[j] == 0;
+    }
+    for (int j = maxWord; zeroed && j < bits.length; j++) {
+        zeroed &= bits[j] == 0;
+    }
+    return zeroed;
   }
 
   /**

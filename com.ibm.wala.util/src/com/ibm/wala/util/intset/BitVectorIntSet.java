@@ -484,14 +484,18 @@ public final class BitVectorIntSet implements MutableIntSet {
    * @param set
    * @throws IllegalArgumentException if set is null
    */
-  public boolean removeAll(BitVectorIntSet set) {
+  public void removeAll(BitVectorIntSet set) {
     if (set == null) {
       throw new IllegalArgumentException("set is null");
     }
-    int oldSize = size();
-    bitVector.andNot(set.bitVector);
-    populationCount = UNDEFINED;
-    return oldSize > size();
+    if (populationCount == 0) return;
+    
+    final boolean removedAll = bitVector.andNot(set.bitVector);
+    if (removedAll) {
+      populationCount = 0;
+    } else {
+      populationCount = NONEMPTY;
+    }
   }
 
   /*
