@@ -25,8 +25,8 @@ public final class BitVectorIntSet implements MutableIntSet {
   // population count of -1 means needs to be computed again.
   private int populationCount = 0;
 
-  private static final int UNDEFINED = -2;
-  private static final int NONEMPTY = -1;
+  public static final int UNDEFINED = -2;
+  public static final int NONEMPTY = -1;
 
   private BitVector bitVector = new BitVector(0);
 
@@ -229,7 +229,11 @@ public final class BitVectorIntSet implements MutableIntSet {
    */
   @Override
   public boolean isEmpty() {
-    return populationCount != NONEMPTY && size() == 0;
+    if (populationCount == UNDEFINED) {
+      populationCount = bitVector.nonEmptyOrCount();
+    }
+    assert populationCount != UNDEFINED;
+    return populationCount == 0;
   }
   
   /*

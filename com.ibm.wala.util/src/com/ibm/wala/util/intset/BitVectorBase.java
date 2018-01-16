@@ -93,6 +93,26 @@ abstract public class BitVectorBase<T extends BitVectorBase> implements Cloneabl
     }
     return count;
   }
+  
+  public int nonEmptyOrCount() {
+    int setLength = bits.length;
+    int foundAt = -1;
+    for (int i = setLength - 1; i >= 0;) {
+      if (bits[i] != 0) {
+        foundAt = i;
+        break;
+      }
+      i--;
+    }
+    if (foundAt == -1) return 0;
+    if (foundAt > setLength / 2) return BitVectorIntSet.NONEMPTY;
+    
+    int count = 0;
+    for (int i = foundAt; i >= 0; i--) {
+      count += Bits.populationCount(bits[i]);
+    }
+    return count;
+  }
 
   public boolean isZero() {
     int setLength = bits.length;
