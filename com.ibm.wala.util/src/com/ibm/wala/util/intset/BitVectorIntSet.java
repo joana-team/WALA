@@ -28,16 +28,33 @@ public final class BitVectorIntSet implements MutableIntSet {
   public static final int UNDEFINED = -2;
   public static final int NONEMPTY = -1;
 
-  private BitVector bitVector = new BitVector(0);
+  private BitVector bitVector;
 
   public BitVectorIntSet() {
+    bitVector = new BitVector(0);
   }
 
   public BitVectorIntSet(BitVector v) {
     if (v == null) {
       throw new IllegalArgumentException("null v");
     }
+    bitVector = new BitVector(0);
     bitVector.or(v);
+    populationCount = UNDEFINED;
+  }
+  
+  /**
+   * @param v must be non-zero.
+   * @param maxbit the maximal bit set in the BitVector v, hence: maxBit must be >= 0
+   */
+  public BitVectorIntSet(BitVector v, int maxbit) {
+    if (v == null) {
+      throw new IllegalArgumentException("null v");
+    }
+    assert maxbit >= 0;
+    assert maxbit == v.max();
+    bitVector = new BitVector(maxbit);
+    System.arraycopy(v.bits, 0, bitVector.bits, 0, bitVector.bits.length);
     populationCount = UNDEFINED;
   }
 
@@ -89,8 +106,8 @@ public final class BitVectorIntSet implements MutableIntSet {
       IntSet backing = ((BimodalMutableIntSet) set).getBackingStore();
       copySet(backing);
     } else {
-      bitVector.clearAll();
       populationCount = set.size();
+      bitVector = new BitVector(populationCount);
       for (IntIterator it = set.intIterator(); it.hasNext();) {
         bitVector.set(it.next());
       }
