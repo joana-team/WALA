@@ -12,7 +12,7 @@ package com.ibm.wala.util.intset;
 
 /**
  */
-public class BitVector extends BitVectorBase<BitVector> {
+public final class BitVector extends BitVectorBase<BitVector> {
 
   private static final long serialVersionUID = 9087259335807761617L;
 
@@ -38,11 +38,11 @@ public class BitVector extends BitVectorBase<BitVector> {
    * Expand this bit vector to size newCapacity.
    */
   void expand(int newCapacity) {
+    final int newLength = subscript(newCapacity) + 1;
     int[] oldbits = bits;
-    bits = new int[subscript(newCapacity) + 1];
-    for (int i = 0; i < oldbits.length; i++) {
-      bits[i] = oldbits[i];
-    }
+    assert newLength >= oldbits.length;
+    bits = new int[newLength];
+    System.arraycopy(oldbits, 0, bits, 0, oldbits.length);
   }
 
   /**
