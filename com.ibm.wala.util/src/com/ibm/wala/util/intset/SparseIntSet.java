@@ -434,6 +434,13 @@ public class SparseIntSet implements IntSet {
     }
     return (size > 0) ? elements[size - 1] : -1;
   }
+  
+  /**
+   * @return the smallest element in the set
+   */
+  public final int min() throws IllegalStateException {
+    return (size > 0) ? elements[0] : -1;
+  }
 
   /*
    * @see com.ibm.wala.util.intset.IntSet#foreach(com.ibm.wala.util.intset.IntSetAction)
@@ -537,6 +544,8 @@ public class SparseIntSet implements IntSet {
     } else if (set instanceof BimodalMutableIntSet) {
       return set.containsAny(this);
     } else if (set instanceof MutableSharedBitVectorIntSet) {
+      return set.containsAny(this);
+    } else if (set instanceof BitVectorIntSet) {
       return set.containsAny(this);
     } else {
       for (int i = 0; i < size; i++) {

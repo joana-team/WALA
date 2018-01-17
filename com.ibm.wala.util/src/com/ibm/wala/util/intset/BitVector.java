@@ -115,6 +115,17 @@ public final class BitVector extends BitVectorBase<BitVector> {
     int shiftBits = bit & LOW_MASK;
     return ((bits[ss] & (1 << shiftBits)) != 0);
   }
+  
+  /**
+   * Gets a bit.
+   * 
+   * @param bit the bit to be gotten
+   */
+  public static boolean getUnsafe(int[] bits, int bit) {
+    final int ss = subscript(bit);
+    final int shiftBits = bit & LOW_MASK;
+    return ((bits[ss] & (1 << shiftBits)) != 0);
+  }
 
   /**
    * Return the NOT of a bit string

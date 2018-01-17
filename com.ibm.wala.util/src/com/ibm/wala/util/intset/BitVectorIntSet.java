@@ -532,6 +532,18 @@ public final class BitVectorIntSet implements MutableIntSet {
       BitVectorIntSet b = (BitVectorIntSet) set;
       if (b.populationCount == 0) return false;
       return !bitVector.intersectionEmpty(b.bitVector);
+    } else if (set instanceof SparseIntSet) {
+      SparseIntSet s = (SparseIntSet) set;
+      final int[] bitVectorBits = bitVector.bits;
+      final int bitVectorLength = bitVector.length();
+      final int sSize = s.size();
+      final int[] ids = s.elements;
+      for (int i = 0; i < sSize; i++) {
+        final int id = ids[i];
+        if (id >= bitVectorLength) return false;
+        if (BitVector.getUnsafe(bitVectorBits, id)) return true;
+      }
+      return false;
     } else {
       // TODO: optimize
       for (IntIterator it = set.intIterator(); it.hasNext();) {
