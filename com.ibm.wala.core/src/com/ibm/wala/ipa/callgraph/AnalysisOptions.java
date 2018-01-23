@@ -65,7 +65,7 @@ public class AnalysisOptions {
    */
   public static enum ReflectionOptions {
     FULL("full", Integer.MAX_VALUE, false, false, false),
-    JOANA("joana", 1, false, false, true),
+    JOANA("joana", 1, false, true, true),
     APPLICATION_GET_METHOD("application_get_method", Integer.MAX_VALUE, false, false, true), 
     NO_FLOW_TO_CASTS("no_flow_to_casts", 0, false, false, false), 
     NO_FLOW_TO_CASTS_APPLICATION_GET_METHOD("no_flow_to_casts_application_get_method", 0, false, false, true), 
