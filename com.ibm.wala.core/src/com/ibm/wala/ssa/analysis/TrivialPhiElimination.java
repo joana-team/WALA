@@ -94,7 +94,8 @@ public class TrivialPhiElimination {
         trivial.add(phiDef);
         for (Iterator<SSAInstruction> it = DU.getUses(phiDef.getDef()); it.hasNext();) {
           final SSAInstruction instruction = it.next();
-          if (instruction instanceof SSAPhiInstruction) {
+          // TODO: is this instruction != phiDef sufficient to guarantee termination?!?!
+          if (instruction != phiDef && instruction instanceof SSAPhiInstruction) {
             workQueue.add((SSAPhiInstruction) instruction);
           }
         }
