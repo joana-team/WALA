@@ -60,7 +60,7 @@ public class EclipseAnalysisScopeReader extends AnalysisScopeReader {
     AnalysisScope scope = makePrimordialScopeFromPlugin(exclusionsFile, plugIn);
     ClassLoaderReference loader = scope.getLoader(AnalysisScope.APPLICATION);
 
-    addClassPathToScope(classPath, scope, loader);
+    addClassPathToScope(classPath, scope, loader, true);
 
     return scope;
   }

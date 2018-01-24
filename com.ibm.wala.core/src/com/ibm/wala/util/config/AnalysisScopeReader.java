@@ -195,24 +195,32 @@ public class AnalysisScopeReader {
 
 
   /**
+   * @see AnalysisScopeReader#makeJavaBinaryAnalysisScope(String, File, boolean)
+   */
+  public static AnalysisScope makeJavaBinaryAnalysisScope(String classPath, File exclusionsFile) throws IOException {
+    return makeJavaBinaryAnalysisScope(classPath, exclusionsFile, true);
+  }
+  
+  /**
    * @param classPath class path to analyze, delimited by {@link File#pathSeparator}
    * @param exclusionsFile file holding class hierarchy exclusions. may be null
+   * @param addEntriesFromMANIFEST if true, entries referenced via a "Class-Path:" line in MANIFEST.MF files will recursively be added
    * @throws IOException 
    * @throws IllegalStateException if there are problems reading wala properties
    */
-  public static AnalysisScope makeJavaBinaryAnalysisScope(String classPath, File exclusionsFile) throws IOException {
+  public static AnalysisScope makeJavaBinaryAnalysisScope(String classPath, File exclusionsFile, boolean addEntriesFromMANIFEST) throws IOException {
     if (classPath == null) {
       throw new IllegalArgumentException("classPath null");
     }
     AnalysisScope scope = makePrimordialScope(exclusionsFile);
     ClassLoaderReference loader = scope.getLoader(AnalysisScope.APPLICATION);
 
-    addClassPathToScope(classPath, scope, loader);
+    addClassPathToScope(classPath, scope, loader, addEntriesFromMANIFEST);
 
     return scope;
   }
 
-  public static void addClassPathToScope(String classPath, AnalysisScope scope, ClassLoaderReference loader) {
+  public static void addClassPathToScope(String classPath, AnalysisScope scope, ClassLoaderReference loader, boolean addEntriesFromMANIFEST) {
     if (classPath == null) {
       throw new IllegalArgumentException("null classPath");
     }
@@ -224,11 +232,11 @@ public class AnalysisScopeReader {
           JarFile jar = new JarFile(path, false);
           scope.addToScope(loader, jar);
           try {
-            if (jar.getManifest() != null) {
+            if (addEntriesFromMANIFEST && jar.getManifest() != null) {
               String cp = jar.getManifest().getMainAttributes().getValue("Class-Path");
               if (cp != null) {
                 for(String cpEntry : cp.split(" ")) { 
-                  addClassPathToScope(new File(path).getParent() + File.separator + cpEntry, scope, loader);
+                  addClassPathToScope(new File(path).getParent() + File.separator + cpEntry, scope, loader, addEntriesFromMANIFEST);
                 }
               }
             }
