@@ -169,6 +169,8 @@ public final class AndroidTypes {
 
     public static final TypeName KeyEventName = TypeName.findOrCreate("Landroid/view/KeyEvent");
 
+    public static final TypeName ActionBarActivityName = TypeName.findOrCreate("Landroid/support/v7/app/ActionBarActivity");
+    public static final TypeReference ActionBarActivityInfo = TypeReference.findOrCreate(ClassLoaderReference.Primordial, ActionBarActivityName);
     public enum AndroidContextType {
         CONTEXT_IMPL,
         CONTEXT_BRIDGE,

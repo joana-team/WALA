@@ -56,6 +56,7 @@ import com.ibm.wala.util.strings.StringStuff;
 public enum AndroidComponent {
     APPLICATION(AndroidTypes.Application, "Application"),
     ACTIVITY(AndroidTypes.Activity, "Activity"),
+    ACTION_BAR_ACTIVITY(AndroidTypes.ActionBarActivityInfo, "ActionBarActivity"),
     FRAGMENT(AndroidTypes.Fragment, "Fragment"),
     SERVICE(AndroidTypes.Service, "Service"),
     INTENT_SERVICE(AndroidTypes.IntentService, "IntentService"),
