@@ -261,9 +261,8 @@ public class Intent implements ContextItem, Comparable<Intent> {
         return this.targetCompontent;
     }
 
-    private static boolean isSystemService(Intent intent) {  
-        assert (intent.action != null);
-        return (intent.action.getVal(0) != 'L') && (intent.action.rIndex((byte) '/') < 0) && (intent.action.rIndex((byte) '.') < 0);
+    private static boolean isSystemService(Intent intent) {
+        return intent.action != null && (intent.action.getVal(0) != 'L') && (intent.action.rIndex((byte) '/') < 0) && (intent.action.rIndex((byte) '.') < 0);
     }
 
     /**
