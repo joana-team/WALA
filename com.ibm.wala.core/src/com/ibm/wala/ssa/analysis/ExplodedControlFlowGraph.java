@@ -146,7 +146,31 @@ public class ExplodedControlFlowGraph implements ControlFlowGraph<SSAInstruction
     if (eb.equals(exit)) {
       return Collections.emptyList();
     }
-    if (eb.isEntryBlock() || eb.instructionIndex == eb.original.getLastInstructionIndex()) {
+    if (eb.isEntryBlock()) {
+      // exploded entry blocks cannot throw themselves.
+      // WALA used to return the List candidates of exceptional successrs as computed below,
+      // but whenever that List is not empty, it is always the same as the exploded entry block's successor's
+      boolean assertionsEnabled = false;
+      assert (assertionsEnabled = true) == true;
+      if (assertionsEnabled) {
+        List<IExplodedBasicBlock> candidates = new ArrayList<>();
+        ISSABasicBlock orig = eb.original;
+        if (eb.isEntryBlock() && orig == null) {
+          orig = ir.getControlFlowGraph().entry();
+        }
+  
+        for (ISSABasicBlock s : ir.getControlFlowGraph().getExceptionalSuccessors(orig)) {
+          if (s.equals(ir.getControlFlowGraph().exit())) {
+            candidates.add(exit());
+          } else {
+            assert normalNodes.get(s.getFirstInstructionIndex()) != null;
+            candidates.add(normalNodes.get(s.getFirstInstructionIndex()));
+          }
+        }
+        assert candidates.isEmpty() || getNormalSuccessors(bb).size() == 1 && candidates.equals(getExceptionalSuccessors(getNormalSuccessors(bb).iterator().next()));
+      }
+      return Collections.emptyList();
+    } else if (eb.instructionIndex == eb.original.getLastInstructionIndex()) {
       List<IExplodedBasicBlock> result = new ArrayList<>();
       ISSABasicBlock orig = eb.original;
       if (eb.isEntryBlock() && orig == null) {
