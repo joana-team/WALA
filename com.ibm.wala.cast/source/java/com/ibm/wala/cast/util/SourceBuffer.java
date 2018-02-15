@@ -141,6 +141,8 @@ public class SourceBuffer {
 	@Override
   public URL getURL() { return hack.getURL(); }
 	@Override
+  public String getfileName() { return hack.getfileName(); }
+	@Override
   public Reader getReader() throws IOException { 
 	  return hack.getReader();
 	}

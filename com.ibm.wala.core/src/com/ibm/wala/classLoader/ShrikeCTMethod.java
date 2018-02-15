@@ -219,6 +219,11 @@ public final class ShrikeCTMethod extends ShrikeBTMethod implements IBytecodeMet
     }
     
     @Override
+    public String getfileName() {
+      return fileName;
+    }
+    
+    @Override
     public String toString() {
       return fileName + "(" + firstLine + "," + firstCol + "-" + lastLine + "," + lastCol + ")";
     }

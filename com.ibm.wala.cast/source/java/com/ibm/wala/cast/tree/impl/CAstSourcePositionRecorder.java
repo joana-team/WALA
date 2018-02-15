@@ -78,6 +78,8 @@ public class CAstSourcePositionRecorder implements CAstSourcePositionMap {
 	@Override
   public URL getURL() { return url; }
 	@Override
+  public String getfileName() { return url.getFile(); }
+	@Override
   public Reader getReader() throws IOException { 
 	  return new InputStreamReader(file.openConnection().getInputStream());
 	}

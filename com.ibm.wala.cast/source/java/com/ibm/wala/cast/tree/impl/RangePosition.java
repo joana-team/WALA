@@ -81,6 +81,11 @@ public class RangePosition extends AbstractSourcePosition {
   public URL getURL() {
     return url;
   }
+  
+  @Override
+  public String getfileName() {
+    return url.getFile();
+  }
 
   @Override
   public Reader getReader() throws IOException {

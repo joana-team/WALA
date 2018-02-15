@@ -64,6 +64,11 @@ public final class JdtPosition implements Position {
     public int getLastLine() {
       return lastLine;
     }
+    
+    @Override
+    public String getfileName() {
+      return path;
+    }
 
     @Override
     public URL getURL() {

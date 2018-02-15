@@ -85,6 +85,11 @@ public class JerichoTag implements ITag {
 	          return null;
 	        }
 	      }
+	      
+	      @Override
+	      public String getfileName() {
+	        return sourceFile;
+	      }
 
 	      @Override
 	      public Reader getReader() throws IOException {

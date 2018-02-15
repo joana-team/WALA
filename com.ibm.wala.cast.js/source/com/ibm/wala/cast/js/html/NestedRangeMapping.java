@@ -67,6 +67,11 @@ public class NestedRangeMapping implements FileMapping {
             public URL getURL() {
               return pos.getURL();
             }
+            
+            @Override
+            public String getfileName() {
+              return pos.getfileName();
+            }
 
             @Override
             public Reader getReader() throws IOException {

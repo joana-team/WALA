@@ -75,6 +75,11 @@ public abstract class NativeTranslatorToCAst
       public URL getURL() {
         return sourceURL;
       }
+      
+      @Override
+      public String getfileName() {
+        return sourceURL.getFile();
+      }
 
       public InputStream getInputStream() throws IOException {
         return new FileInputStream(sourceFileName);

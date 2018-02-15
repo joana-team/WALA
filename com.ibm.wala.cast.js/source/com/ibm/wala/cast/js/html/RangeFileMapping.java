@@ -113,6 +113,11 @@ public class RangeFileMapping implements FileMapping {
         public URL getURL() {
           return includedURL;
         }
+        
+        @Override
+        public String getfileName() {
+          return includedURL.getFile();
+        }
         @Override
         public Reader getReader() throws IOException {
           return RangeFileMapping.this.getInputStream();

@@ -51,6 +51,11 @@ public class LineNumberPosition extends AbstractSourcePosition {
   public Reader getReader() throws IOException { 
     return new InputStreamReader(localFile.openConnection().getInputStream());
   }
+  
+  @Override
+  public String getfileName() {
+    return url.getFile();
+  }
 
   @Override
   public String toString() {
