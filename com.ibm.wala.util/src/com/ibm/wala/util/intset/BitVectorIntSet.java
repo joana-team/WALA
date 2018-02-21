@@ -544,6 +544,8 @@ public final class BitVectorIntSet implements MutableIntSet {
         if (BitVector.getUnsafe(bitVectorBits, id)) return true;
       }
       return false;
+    } else if (set instanceof EmptyIntSet) {
+      return false;
     } else {
       // TODO: optimize
       for (IntIterator it = set.intIterator(); it.hasNext();) {

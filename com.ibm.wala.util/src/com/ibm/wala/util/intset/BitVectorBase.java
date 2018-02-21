@@ -214,13 +214,13 @@ abstract public class BitVectorBase<T extends BitVectorBase> implements Cloneabl
     int shift = (start & LOW_MASK);
     int w = bits[word] >> shift;
     if (w != 0) {
-      return start + Long.numberOfTrailingZeros(w);
+      return start + Integer.numberOfTrailingZeros(w);
     }
     start = (start + BITS_PER_UNIT) & ~LOW_MASK;
     word++;
     while (word < bits.length) {
       if (bits[word] != 0) {
-        return start + Long.numberOfTrailingZeros(bits[word]);
+        return start + Integer.numberOfTrailingZeros(bits[word]);
       } else {
         start += BITS_PER_UNIT;
       }

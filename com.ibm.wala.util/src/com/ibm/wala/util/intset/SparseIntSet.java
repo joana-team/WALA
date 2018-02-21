@@ -547,6 +547,8 @@ public class SparseIntSet implements IntSet {
       return set.containsAny(this);
     } else if (set instanceof BitVectorIntSet) {
       return set.containsAny(this);
+    } else if (set instanceof EmptyIntSet) {
+      return false;
     } else {
       for (int i = 0; i < size; i++) {
         if (set.contains(elements[i])) {
