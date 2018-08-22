@@ -25,6 +25,7 @@ import com.ibm.wala.cfg.exc.intra.MethodState;
 import com.ibm.wala.cfg.exc.intra.NullPointerState;
 import com.ibm.wala.cfg.exc.intra.NullPointerState.State;
 import com.ibm.wala.cfg.exc.intra.ParameterState;
+import com.ibm.wala.classLoader.IMethod;
 import com.ibm.wala.ipa.callgraph.CGNode;
 import com.ibm.wala.ipa.callgraph.CallGraph;
 import com.ibm.wala.ipa.callgraph.impl.PartialCallGraph;
@@ -32,6 +33,7 @@ import com.ibm.wala.ssa.IR;
 import com.ibm.wala.ssa.SSAAbstractInvokeInstruction;
 import com.ibm.wala.ssa.SSAInstruction;
 import com.ibm.wala.ssa.analysis.IExplodedBasicBlock;
+import com.ibm.wala.types.TypeName;
 import com.ibm.wala.types.TypeReference;
 import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.MonitorUtil;
@@ -216,72 +218,37 @@ public final class InterprocNullPointerAnalysis {
   }
 
   /**
-   * Reduces the Callgraph to only the nodes that we need
+   * filters a CallGraph
+   * 
+   * @param cg
+   *          the original unfiltered CallGraph
+   * @return the filtered CallGraph
    */
   private static CallGraph computeFilteredCallgraph(final CallGraph cg) {
-    final HashSet<Atom> filterSet = new HashSet<>();
+    final HashSet<CGNode> nodes = new HashSet<>();
+
+    // fill all nodes into a set
     final Atom worldClinit = Atom.findOrCreateAsciiAtom("fakeWorldClinit");
-    filterSet.add(worldClinit);
-    final CallGraphFilter filter = new CallGraphFilter(filterSet);
-
-    return filter.filter(cg);
-  }
-
-  /**
-   * Filter for CallGraphs
-   * 
-   * @author Markus Herhoffer &lt;markus.herhoffer@student.kit.edu&gt;
-   * 
-   */
-  private static class CallGraphFilter {
-    private Set<Atom> filter;
-
-    /**
-     * Filter for CallGraphs
-     * 
-     * @param filterSet
-     *          the MethodReferences to be filtered out
-     */
-    private CallGraphFilter(HashSet<Atom> filterSet) {
-      this.filter = filterSet;
+    final TypeName fakeWorld = TypeName.findOrCreateClassName("com/ibm/wala", "FakeRootClass");
+    
+    for (final CGNode n : cg) {
+      IMethod method = n.getMethod();
+      if (method.getName().equals(worldClinit)
+          && method.getDeclaringClass().getName().equals(fakeWorld)) {
+        continue;
+      }
+      nodes.add(n);
     }
 
-    /**
-     * filters a CallGraph
-     * 
-     * @param fullCG
-     *          the original unfiltered CallGraph
-     * @return the filtered CallGraph
-     */
-    private CallGraph filter(final CallGraph fullCG) {
-      final HashSet<CGNode> nodes = new HashSet<>();
+    final HashSet<CGNode> partialRoots = new HashSet<>();
+    partialRoots.add(cg.getFakeRootNode());
 
-      // fill all nodes into a set
-      for (final CGNode n : fullCG) {
-        nodes.add(n);
-      }
+    // delete the nodes
+    final PartialCallGraph partialCG1 = PartialCallGraph.make(cg, partialRoots, nodes);
 
-      final HashSet<CGNode> nodesToRemove = new HashSet<>();
-      // collect all nodes that we do not need
-      for (final CGNode node : nodes) {
-        for (final Atom method : filter) {
-          if (node.getMethod().getName().equals(method)) {
-            nodesToRemove.add(node);
-          }
-        }
-      }
-      nodes.removeAll(nodesToRemove);
+    // delete the nodes not reachable by root (consider the different implementations of "make")
+    final PartialCallGraph partialCG2 = PartialCallGraph.make(partialCG1, partialRoots);
 
-      final HashSet<CGNode> partialRoots = new HashSet<>();
-      partialRoots.add(fullCG.getFakeRootNode());
-
-      // delete the nodes
-      final PartialCallGraph partialCG1 = PartialCallGraph.make(fullCG, partialRoots, nodes);
-
-      // delete the nodes not reachable by root (consider the different implementations of "make")
-      final PartialCallGraph partialCG2 = PartialCallGraph.make(partialCG1, partialRoots);
-
-      return partialCG2;
-    }
+    return partialCG2;
   }
 }
