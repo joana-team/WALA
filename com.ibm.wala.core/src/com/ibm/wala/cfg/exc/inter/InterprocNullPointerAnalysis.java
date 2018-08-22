@@ -32,7 +32,6 @@ import com.ibm.wala.ssa.IR;
 import com.ibm.wala.ssa.SSAAbstractInvokeInstruction;
 import com.ibm.wala.ssa.SSAInstruction;
 import com.ibm.wala.ssa.analysis.IExplodedBasicBlock;
-import com.ibm.wala.types.MethodReference;
 import com.ibm.wala.types.TypeReference;
 import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.MonitorUtil;
@@ -223,7 +222,6 @@ public final class InterprocNullPointerAnalysis {
     final HashSet<Atom> filterSet = new HashSet<>();
     final Atom worldClinit = Atom.findOrCreateAsciiAtom("fakeWorldClinit");
     filterSet.add(worldClinit);
-    filterSet.add(MethodReference.initAtom);
     final CallGraphFilter filter = new CallGraphFilter(filterSet);
 
     return filter.filter(cg);
