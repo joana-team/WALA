@@ -11,8 +11,11 @@
 package com.ibm.wala.shrikeBT;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 
 import com.ibm.wala.shrikeBT.IBinaryOpInstruction.Operator;
+import com.ibm.wala.util.graph.dominators.Dominators;
+import com.ibm.wala.util.graph.impl.BasicGraph;
 
 /**
  * A Decoder translates a method's Java bytecode into shrikeBT code, i.e. an array of Instruction objects and an array of lists of
@@ -1056,11 +1059,125 @@ public abstract class Decoder implements Constants {
       }
     }
 
+    makeCFGRegular();
+
     decoded = null;
     decodedOffset = null;
     decodedSize = null;
     belongsToSub = null;
     JSRs = null;
+  }
+
+  private void makeCFGRegular() {
+    if (rawHandlers.length > 0 || belongsToSub != null || JSRs != null || retInfo != null) {
+      // don't try to analyse (for now)
+      return;
+    }
+
+    boolean changed = true;
+    while (changed) {
+      changed = false;
+
+      // TODO: use NumberedGraph?
+      BasicGraph<Integer> G = new BasicGraph<>();
+      for (int i = 0; i < instructions.length; i++) {
+        G.addNode(i);
+        for (int target : instructions[i].getBranchTargets()) {
+          G.addEdge(i, target);
+        }
+        if (instructions[i].isFallThrough()) {
+          G.addEdge(i, i + 1);
+        }
+      }
+
+      Dominators<Integer> dominators = Dominators.<Integer>make(G, 0);
+
+      for (int i = 0; i < instructions.length; i++) {
+        if (G.getPredNodeCount(i) <= 2) {
+          continue;
+        }
+
+        int minCdom = -1;
+        int minX = -1;
+        int minY = -1;
+
+        Iterator<Integer> it1 = G.getPredNodes(i);
+        while (it1.hasNext()) {
+          int x = it1.next();
+          if (dominators.isDominatedBy(x, i)) {
+            continue;
+          }
+          Iterator<Integer> it2 = G.getPredNodes(i);
+          while (it2.hasNext()) {
+            int y = it2.next();
+            if (x <= y || dominators.isDominatedBy(y, i)) {
+              continue;
+            }
+            int cdom = x;
+            while (!dominators.isDominatedBy(y, cdom)) {
+              cdom = dominators.getIdom(cdom);
+            }
+
+            if (minCdom == -1 || dominators.isDominatedBy(cdom, minCdom)) {
+              minCdom = cdom;
+              minX = x;
+              minY = y;
+            }
+          }
+        }
+
+        if (minCdom != -1) {
+          rewireControlFlow(minX, minY, i);
+          changed = true;
+          break;
+        }
+      }
+    }
+
+    //restore invariants
+    handlers = new ExceptionHandler[instructions.length][];
+    for (int i = 0; i < handlers.length; i++) {
+      handlers[i] = noHandlers;
+    }
+    //TODO: fix instructionsToBytecodes
+  }
+
+  private void rewireControlFlow(int x, int y, int c) {
+    int oldLength = instructions.length;
+
+    int[] targetMap = new int[oldLength];
+    int[] targetMapXY = new int[oldLength];
+    int j = 0;
+    for (int i = 0; i < oldLength; i++) {
+      targetMap[i] = j;
+      targetMapXY[i] = j;
+      j += ((i == x || i == y) && i + 1 == c && instructions[i].isFallThrough()) ? 2 : 1;
+    }
+
+    int finalIndex = j;
+    targetMapXY[c] = finalIndex;
+    IInstruction[] ret = new IInstruction[finalIndex+1];
+    int[] newInstructionsToBytecodes = new int[finalIndex+1];
+
+    j = 0;
+    for (int i = 0; i < instructions.length; i++) {
+      newInstructionsToBytecodes[j] = instructionsToBytecodes[i];
+      if (i == x || i == y) {
+        ret[j] = instructions[i].redirectTargets(targetMapXY);
+        j++;
+        if (i + 1 == c && instructions[i].isFallThrough()) {
+          newInstructionsToBytecodes[j] = instructionsToBytecodes[i];
+          ret[j] = GotoInstruction.make(finalIndex);
+          j++;
+        }
+      } else {
+        ret[j] = instructions[i].redirectTargets(targetMap);
+        j++;
+      }
+    }
+    ret[finalIndex] = GotoInstruction.make(targetMap[c]);
+    instructions = ret;
+    instructionsToBytecodes = newInstructionsToBytecodes;
   }
 
   /**
