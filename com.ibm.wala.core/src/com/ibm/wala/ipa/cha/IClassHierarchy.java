@@ -183,4 +183,18 @@ public interface IClassHierarchy extends Iterable<IClass> {
    */
   public boolean isAssignableFrom(IClass c1, IClass c2);
 
+  /**
+   * 
+   * @param className requires BC string
+   * @return
+   */
+  public default IClass lookupClass(String className){
+    for (IClassLoader loader : getLoaders()){
+      IClass klass = lookupClass(TypeReference.findOrCreate(loader.getReference(), className));
+      if (klass != null){
+        return klass;
+      }
+    }
+    return null;
+  }
 }
