@@ -64,6 +64,9 @@ public abstract class SSAGetInstruction extends SSAFieldAccessInstruction {
     return true;
   }
 
+  /**
+   * @return -1 iff false else states the instance
+   */
   @Override
   public int getDef() {
     return result;

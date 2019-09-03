@@ -10,9 +10,7 @@
  *******************************************************************************/
 package com.ibm.wala.ipa.callgraph.propagation;
 
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import com.ibm.wala.analysis.reflection.IllegalArgumentExceptionContext;
 import com.ibm.wala.classLoader.CallSiteReference;
@@ -23,15 +21,7 @@ import com.ibm.wala.classLoader.Language;
 import com.ibm.wala.classLoader.NewSiteReference;
 import com.ibm.wala.classLoader.SyntheticClass;
 import com.ibm.wala.fixpoint.UnaryOperator;
-import com.ibm.wala.ipa.callgraph.AnalysisOptions;
-import com.ibm.wala.ipa.callgraph.CGNode;
-import com.ibm.wala.ipa.callgraph.CallGraph;
-import com.ibm.wala.ipa.callgraph.CallGraphBuilder;
-import com.ibm.wala.ipa.callgraph.CallGraphBuilderCancelException;
-import com.ibm.wala.ipa.callgraph.Context;
-import com.ibm.wala.ipa.callgraph.ContextSelector;
-import com.ibm.wala.ipa.callgraph.Entrypoint;
-import com.ibm.wala.ipa.callgraph.IAnalysisCacheView;
+import com.ibm.wala.ipa.callgraph.*;
 import com.ibm.wala.ipa.callgraph.impl.AbstractRootMethod;
 import com.ibm.wala.ipa.callgraph.impl.ExplicitCallGraph;
 import com.ibm.wala.ipa.callgraph.propagation.rta.RTAContextInterpreter;
@@ -171,6 +161,11 @@ public abstract class PropagationCallGraphBuilder implements CallGraphBuilder<In
   final private boolean rememberGetPutHistory = true;
 
   /**
+   * Has to be valid only when invoked with {@link StandardSolver}
+   */
+  protected UninitializedFieldHelperOptions.UninitializedFieldState uninitializedFieldState;
+
+  /**
    * @param cha governing class hierarchy
    * @param options governing call graph construction options
    * @param pointerKeyFactory factory which embodies pointer abstraction policy
@@ -243,13 +238,22 @@ public abstract class PropagationCallGraphBuilder implements CallGraphBuilder<In
     discoveredNodes = HashSetFactory.make();
     discoveredNodes.add(callGraph.getFakeRootNode());
 
+    UninitializedFieldHelperClass fieldHelperClass = null;
+
     // Set up the initially reachable methods and classes
     for (Entrypoint E : options.getEntrypoints()) {
       if (DEBUG_ENTRYPOINTS) {
         System.err.println("Entrypoint: " + E);
       }
-      SSAAbstractInvokeInstruction call = E.addCall((AbstractRootMethod) callGraph.getFakeRootNode().getMethod());
-
+      AbstractRootMethod root = (AbstractRootMethod) callGraph.getFakeRootNode().getMethod();
+      if (!options.getFieldHelperOptions().isEmpty()) {
+        if (fieldHelperClass == null){
+          fieldHelperClass = UninitializedFieldHelperClass.createAndAdd(E.getMethod().getDeclaringClass().getClassLoader(), E.getMethod().getClassHierarchy(), options);
+        }
+        fieldHelperClass.addInvocation(root);
+        options.getFieldHelperOptions().setHelperClass(fieldHelperClass);
+      }
+      SSAAbstractInvokeInstruction call = E.addCall(root, options.getFieldHelperOptions());
       if (call == null) {
         Warnings.add(EntrypointResolutionWarning.create(E));
       } else {
@@ -1471,4 +1475,15 @@ public abstract class PropagationCallGraphBuilder implements CallGraphBuilder<In
     return analysisCache;
   }
 
+  Set<CGNode> getDiscoveredNodes() {
+    return Collections.unmodifiableSet(discoveredNodes);
+  }
+
+  void setDiscoveredNodes(Set<CGNode> discoveredNodes){
+    this.discoveredNodes = new HashSet<>(discoveredNodes);
+  }
+
+  void clearAlreadyVisited(){
+    this.alreadyVisited.clear();
+  }
 }

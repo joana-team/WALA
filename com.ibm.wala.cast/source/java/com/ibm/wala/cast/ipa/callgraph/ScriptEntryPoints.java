@@ -18,6 +18,7 @@ import com.ibm.wala.classLoader.CallSiteReference;
 import com.ibm.wala.classLoader.IClass;
 import com.ibm.wala.classLoader.IMethod;
 import com.ibm.wala.ipa.callgraph.Entrypoint;
+import com.ibm.wala.ipa.callgraph.UninitializedFieldHelperOptions;
 import com.ibm.wala.ipa.callgraph.impl.AbstractRootMethod;
 import com.ibm.wala.ipa.cha.IClassHierarchy;
 import com.ibm.wala.ssa.SSAAbstractInvokeInstruction;
@@ -57,17 +58,17 @@ public abstract class ScriptEntryPoints implements Iterable<Entrypoint> {
 
       
     @Override
-    public SSAAbstractInvokeInstruction addCall(AbstractRootMethod m){
+    public SSAAbstractInvokeInstruction addCall(AbstractRootMethod m, UninitializedFieldHelperOptions fieldHelperOptions){
       CallSiteReference site = makeSite(0);
 
       if (site == null) {
         return null;
       }
 
-      int functionVn = getMethod().isStatic()? -1: makeArgument(m, 0);
+      int functionVn = getMethod().isStatic()? -1: makeArgument(m, 0, fieldHelperOptions);
       int paramVns[] = new int[Math.min(0, getNumberOfParameters() - 1)];
       for (int j = 0; j < paramVns.length; j++) {
-        paramVns[j] = makeArgument(m, j + 1);
+        paramVns[j] = makeArgument(m, j + 1, fieldHelperOptions);
       }
 
       return ((ScriptFakeRoot) m).addDirectCall(functionVn, paramVns, site);

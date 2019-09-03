@@ -15,6 +15,7 @@ import com.ibm.wala.analysis.reflection.ReflectionContextSelector;
 import com.ibm.wala.ipa.callgraph.impl.ExplicitCallGraph;
 import com.ibm.wala.ipa.callgraph.propagation.ReflectionHandler;
 import com.ibm.wala.ssa.SSAOptions;
+import com.ibm.wala.types.TypeReference;
 
 /**
  * Basic interface for options that control call graph generation.
@@ -59,6 +60,8 @@ public class AnalysisOptions {
    * evaluations may be a sign of a bad ordering, even when few new equations are being added.
    */
   private int maxEvalBetweenTopo = 1000000000;
+
+  private UninitializedFieldHelperOptions fieldHelperOptions;
 
   /**
    * options for handling reflection during call graph construction
@@ -205,8 +208,13 @@ public class AnalysisOptions {
   }
 
   public AnalysisOptions(AnalysisScope scope, Iterable<? extends Entrypoint> e) {
+    this(scope, e, new UninitializedFieldHelperOptions());
+  }
+
+  public AnalysisOptions(AnalysisScope scope, Iterable<? extends Entrypoint> e, UninitializedFieldHelperOptions fieldHelperOptions) {
     this.analysisScope = scope;
     this.entrypoints = e;
+    this.fieldHelperOptions = fieldHelperOptions;
   }
 
   public AnalysisScope getAnalysisScope() {
@@ -438,5 +446,24 @@ public class AnalysisOptions {
    */
   public void setHandleZeroLengthArray(boolean handleZeroLengthArray) {
     this.handleZeroLengthArray = handleZeroLengthArray;
+  }
+
+  public UninitializedFieldHelperOptions getFieldHelperOptions() {
+    return fieldHelperOptions;
+  }
+
+  public void setFieldHelperOptions(UninitializedFieldHelperOptions fieldHelperOptions) {
+    this.fieldHelperOptions = fieldHelperOptions;
+  }
+
+  /**
+   * @return uses the uninitialized field helper option?
+   */
+  boolean hasFieldHelperOptions(){
+    return fieldHelperOptions.isEmpty();
+  }
+
+  boolean hasFieldHelperForType(TypeReference type){
+    return fieldHelperOptions.hasFieldForType(type);
   }
 }

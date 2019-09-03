@@ -31,12 +31,8 @@ import com.ibm.wala.classLoader.IMethod;
 import com.ibm.wala.classLoader.NewSiteReference;
 import com.ibm.wala.classLoader.ProgramCounter;
 import com.ibm.wala.fixpoint.AbstractOperator;
-import com.ibm.wala.ipa.callgraph.AnalysisOptions;
-import com.ibm.wala.ipa.callgraph.CGNode;
-import com.ibm.wala.ipa.callgraph.ContextKey;
-import com.ibm.wala.ipa.callgraph.ContextSelector;
-import com.ibm.wala.ipa.callgraph.Entrypoint;
-import com.ibm.wala.ipa.callgraph.IAnalysisCacheView;
+import com.ibm.wala.fixpoint.IFixedPointStatement;
+import com.ibm.wala.ipa.callgraph.*;
 import com.ibm.wala.ipa.callgraph.impl.AbstractRootMethod;
 import com.ibm.wala.ipa.callgraph.impl.DefaultEntrypoint;
 import com.ibm.wala.ipa.callgraph.impl.ExplicitCallGraph;
@@ -88,6 +84,8 @@ import com.ibm.wala.util.intset.MutableIntSet;
 import com.ibm.wala.util.ref.ReferenceCleanser;
 import com.ibm.wala.util.warnings.Warning;
 import com.ibm.wala.util.warnings.Warnings;
+
+import static com.ibm.wala.ipa.callgraph.propagation.PointsToMap.IMPLICIT;
 
 /**
  * This abstract base class provides the general algorithm for a call graph builder that relies on propagation through an iterative
@@ -929,13 +927,18 @@ public abstract class SSAPropagationCallGraphBuilder extends PropagationCallGrap
     public void visitGet(SSAGetInstruction instruction) {
       visitGetInternal(instruction.getDef(), instruction.getRef(), instruction.isStatic(), instruction.getDeclaredField());
     }
-
     protected void visitGetInternal(int lval, int ref, boolean isStatic, FieldReference field) {
       if (DEBUG) {
         System.err.println("visitGet " + field);
       }
 
       PointerKey def = getPointerKeyForLocal(lval);
+      if (getBuilder().uninitializedFieldState.shouldReplace(def)){
+        PointsToMap pointsToMap = getBuilder().getSystem().pointsToMap;
+        pointsToMap.put(def, new PointsToSetVariable(def));
+        system.newConstraint(def, assignOperator, getBuilder().uninitializedFieldState.getReplacement(def));
+        return;
+      }
       assert def != null;
 
       IField f = getClassHierarchy().resolveField(field);
@@ -969,9 +972,20 @@ public abstract class SSAPropagationCallGraphBuilder extends PropagationCallGrap
       } else {
         if (isStatic) {
           PointerKey fKey = getPointerKeyForStaticField(f);
-          system.newConstraint(def, assignOperator, fKey);
+          if (getBuilder().uninitializedFieldState.shouldReplace(def)){
+            system.newConstraint(def, assignOperator, getBuilder().uninitializedFieldState.getReplacement(def));
+          } else {
+            builder.uninitializedFieldState.recordFieldAccess(field, def);
+            system.newConstraint(def, assignOperator, fKey);
+          }
         } else {
           PointerKey refKey = getPointerKeyForLocal(ref);
+          if (getBuilder().uninitializedFieldState.shouldReplace(def)){
+            system.newConstraint(def, assignOperator, getBuilder().uninitializedFieldState.getReplacement(def));
+            return;
+          } else {
+            builder.uninitializedFieldState.recordFieldAccess(field, def);
+          }
           // if (!supportFullPointerFlowGraph &&
           // contentsAreInvariant(ref)) {
           if (contentsAreInvariant(symbolTable, du, ref)) {
@@ -1099,6 +1113,9 @@ public abstract class SSAPropagationCallGraphBuilder extends PropagationCallGrap
       } else {
         processClassInitializer(klass);
       }
+      if (f.getDeclaringClass().equals(getBuilder().getOptions().getFieldHelperOptions().getHelperClass())){
+        getBuilder().uninitializedFieldState.recordHelperClassFieldWrite(f.getReference(), fKey);
+      }
     }
 
     /*
@@ -1172,7 +1189,7 @@ public abstract class SSAPropagationCallGraphBuilder extends PropagationCallGrap
           final List<PointerKey> pks = new ArrayList<>(params.size());
           params.foreach(x -> {
             if (!contentsAreInvariant(symbolTable, du, instruction.getUse(x))) {
-              pks.add(getBuilder().getPointerKeyForLocal(node, instruction.getUse(x)));                   
+              pks.add(getBuilder().getPointerKeyForLocal(node, instruction.getUse(x)));
             }
           });
    
@@ -1464,6 +1481,11 @@ public abstract class SSAPropagationCallGraphBuilder extends PropagationCallGrap
             for (int j = 0; j < constParams[i].length; j++) {
               system.findOrCreateIndexForInstanceKey(constParams[i][j]);
             }
+          } else {
+            UninitializedFieldHelperOptions fieldHelperOptions = getOptions().getFieldHelperOptions();
+            if (fieldHelperOptions.isEmpty()){
+              continue;
+            }
           }
         }
       }
@@ -1507,7 +1529,7 @@ public abstract class SSAPropagationCallGraphBuilder extends PropagationCallGrap
               }
             }          
           };
-          ef.addCall((AbstractRootMethod)callGraph.getFakeRootNode().getMethod());
+          ef.addCall((AbstractRootMethod)callGraph.getFakeRootNode().getMethod(), getOptions().getFieldHelperOptions());
           getBuilder().markChanged(callGraph.getFakeRootNode());
         }
       }

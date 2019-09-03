@@ -11,8 +11,16 @@
 package com.ibm.wala.ipa.callgraph.propagation;
 
 
+import com.ibm.wala.fixpoint.IFixedPointStatement;
+import com.ibm.wala.ipa.callgraph.CGNode;
+import com.ibm.wala.ipa.callgraph.UninitializedFieldHelperClass;
+import com.ibm.wala.ipa.callgraph.UninitializedFieldHelperOptions;
 import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.MonitorUtil.IProgressMonitor;
+
+import java.util.HashSet;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * standard fixed-point iterative solver for pointer analysis
@@ -20,9 +28,12 @@ import com.ibm.wala.util.MonitorUtil.IProgressMonitor;
 public class StandardSolver extends AbstractPointsToSolver {
 
   private static final boolean DEBUG_PHASES = DEBUG || false;
+
+  private final UninitializedFieldHelperClass fieldHelperClass;
   
   public StandardSolver(PropagationSystem system, PropagationCallGraphBuilder builder) {
     super(system, builder);
+    this.fieldHelperClass = builder.getOptions().getFieldHelperOptions().getHelperClass(); // passing it this way is far easier
   }
 
   /*
@@ -30,6 +41,22 @@ public class StandardSolver extends AbstractPointsToSolver {
    */
   @Override
   public void solve(IProgressMonitor monitor) throws IllegalArgumentException, CancelException {
+    UninitializedFieldHelperOptions.UninitializedFieldState uninitializedFieldState = new UninitializedFieldHelperOptions.UninitializedFieldState(fieldHelperClass);
+    Set<CGNode> discoveredNodes = new HashSet<>(getBuilder().getDiscoveredNodes());
+    solveImpl(monitor, uninitializedFieldState);
+    uninitializedFieldState.setKeysToReplace(uninitializedFieldState.getRecordedKeys().stream().filter(k -> !this.hasPointsToSetFor(k)).collect(Collectors.toSet()));
+    /*getSystem().getFixedPointSystem().getStatements()
+        .forEachRemaining(n -> getSystem().getFixedPointSystem()
+          .removeStatement((IFixedPointStatement<PointsToSetVariable>) n));*/
+    getSystem().initializeWorkList();
+    getBuilder().setDiscoveredNodes(discoveredNodes);
+    getBuilder().clearAlreadyVisited();
+    solveImpl(monitor, uninitializedFieldState);
+  }
+
+  private void solveImpl(IProgressMonitor monitor,
+      UninitializedFieldHelperOptions.UninitializedFieldState uninitializedFieldState) throws IllegalArgumentException, CancelException {
+    getBuilder().uninitializedFieldState = uninitializedFieldState;
     int i = 0;
     do {
       i++;
@@ -75,7 +102,13 @@ public class StandardSolver extends AbstractPointsToSolver {
       // Note that we may have added stuff to the
       // worklist; so,
     } while (!getSystem().emptyWorkList());
-
+    getBuilder().uninitializedFieldState = null;
   }
 
+  /**
+   * @return is the points to set non empty?
+   */
+  boolean hasPointsToSetFor(PointerKey key){
+    return getSystem().findOrCreatePointsToSet(key).size() > 0;
+  }
 }
