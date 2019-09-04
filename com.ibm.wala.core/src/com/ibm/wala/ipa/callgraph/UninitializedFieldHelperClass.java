@@ -121,19 +121,16 @@ public class UninitializedFieldHelperClass extends SyntheticClass {
     }){
       {
         // create all fields
-        typeRefToFieldName.forEach((ref, name) -> {
-          int tmpVar = createForTypeReference(ref, this);
-          this.statements.add(insts.PutInstruction(statements.size(), tmpVar, fieldNameToField.get(name).getReference()));
-        });
-        // assign based on class hierarchies
         Map<TypeReference, Integer> localsPerRef = new HashMap<>();
         typeRefToFieldName.forEach((ref, name) -> {
-          List<Integer> values = getSuitableTypeReferences(ref).stream().filter(r -> hierarchy.isSubClass(ref, r) || ref.equals(r)).map(r -> {
-            int local = addLocal();
-            this.statements.add(
-                insts.GetInstruction(statements.size(), local, fieldNameToField.get(typeRefToFieldName.get(r)).getReference()));
-            return local;
-          }).collect(Collectors.toList());
+          int tmpVar = createForTypeReference(ref, this);
+          localsPerRef.put(ref, tmpVar);
+          //this.statements.add(insts.PutInstruction(statements.size(), tmpVar, fieldNameToField.get(name).getReference()));
+        });
+        // assign based on class hierarchies
+        typeRefToFieldName.forEach((ref, name) -> {
+          List<Integer> values = getSuitableTypeReferences(ref).stream().filter(r -> hierarchy.isSubClass(ref, r) || ref.equals(r)).map(
+              localsPerRef::get).collect(Collectors.toList());
           int[] params = new int[values.size()];
           IntStream.range(0, params.length).forEach(i -> params[i] = values.get(i));
           int local = addLocal();
@@ -222,12 +219,18 @@ public class UninitializedFieldHelperClass extends SyntheticClass {
           rel = Relation.SUPER;
         } else if (baseClass.getSuperclass() == null){
           rel = Relation.SUB;
-        } else if (baseClass.equals(childClass.getSuperclass())){
+        } else if (baseClass.equals(childClass.getSuperclass()) || childClass.getAllImplementedInterfaces().contains(baseClass)){
           rel = Relation.SUB;
-        } else if (baseClass.getSuperclass().equals(childClass)){
+        } else if (baseClass.getSuperclass().equals(childClass) || baseClass.getAllImplementedInterfaces().contains(childClass)){
           rel = Relation.SUPER;
         } else {
           rel = getRelation(base, childClass.getSuperclass().getReference());
+          for (IClass inter : childClass.getAllImplementedInterfaces()) {
+            if (rel != Relation.NONE){
+              break;
+            }
+            rel = getRelation(base, inter.getReference());
+          }
           if (rel == Relation.SUPER){
             rel = Relation.NONE;
           }

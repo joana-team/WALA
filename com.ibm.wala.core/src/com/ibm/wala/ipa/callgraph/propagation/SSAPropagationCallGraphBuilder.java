@@ -936,7 +936,9 @@ public abstract class SSAPropagationCallGraphBuilder extends PropagationCallGrap
       if (getBuilder().uninitializedFieldState.shouldReplace(def)){
         PointsToMap pointsToMap = getBuilder().getSystem().pointsToMap;
         pointsToMap.put(def, new PointsToSetVariable(def));
-        system.newConstraint(def, assignOperator, getBuilder().uninitializedFieldState.getReplacement(def));
+        for (PointerKey replacement : getBuilder().uninitializedFieldState.getReplacements(def)) {
+          system.newConstraint(def, assignOperator, replacement);
+        }
         return;
       }
       assert def != null;
@@ -973,18 +975,22 @@ public abstract class SSAPropagationCallGraphBuilder extends PropagationCallGrap
         if (isStatic) {
           PointerKey fKey = getPointerKeyForStaticField(f);
           if (getBuilder().uninitializedFieldState.shouldReplace(def)){
-            system.newConstraint(def, assignOperator, getBuilder().uninitializedFieldState.getReplacement(def));
+            for (PointerKey replacement : getBuilder().uninitializedFieldState.getReplacements(def)) {
+              system.newConstraint(def, assignOperator, replacement);
+            }
           } else {
-            builder.uninitializedFieldState.recordFieldAccess(field, def);
+            builder.uninitializedFieldState.recordFieldAccess(field, def, node);
             system.newConstraint(def, assignOperator, fKey);
           }
         } else {
           PointerKey refKey = getPointerKeyForLocal(ref);
           if (getBuilder().uninitializedFieldState.shouldReplace(def)){
-            system.newConstraint(def, assignOperator, getBuilder().uninitializedFieldState.getReplacement(def));
+            for (PointerKey replacement : getBuilder().uninitializedFieldState.getReplacements(def)) {
+            system.newConstraint(def, assignOperator, replacement);
+          }
             return;
           } else {
-            builder.uninitializedFieldState.recordFieldAccess(field, def);
+            builder.uninitializedFieldState.recordFieldAccess(field, def, node);
           }
           // if (!supportFullPointerFlowGraph &&
           // contentsAreInvariant(ref)) {

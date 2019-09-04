@@ -44,14 +44,20 @@ public class StandardSolver extends AbstractPointsToSolver {
     UninitializedFieldHelperOptions.UninitializedFieldState uninitializedFieldState = new UninitializedFieldHelperOptions.UninitializedFieldState(fieldHelperClass);
     Set<CGNode> discoveredNodes = new HashSet<>(getBuilder().getDiscoveredNodes());
     solveImpl(monitor, uninitializedFieldState);
-    uninitializedFieldState.setKeysToReplace(uninitializedFieldState.getRecordedKeys().stream().filter(k -> !this.hasPointsToSetFor(k)).collect(Collectors.toSet()));
-    /*getSystem().getFixedPointSystem().getStatements()
-        .forEachRemaining(n -> getSystem().getFixedPointSystem()
-          .removeStatement((IFixedPointStatement<PointsToSetVariable>) n));*/
-    getSystem().initializeWorkList();
+    Set<PointerKey> collect = uninitializedFieldState.getRecordedKeys().stream().filter(k -> !this.hasPointsToSetFor(k))
+        .collect(Collectors.toSet());
+    uninitializedFieldState.setKeysToReplace(collect);
+    //getSystem().getFixedPointSystem().getStatements()
+    //    .forEachRemaining(n -> getSystem().getFixedPointSystem()
+    //      .removeStatement((IFixedPointStatement<PointsToSetVariable>) n));
+    //getSystem().initializeWorkList();
+    discoveredNodes.addAll(uninitializedFieldState.getCgNodesWithReplacements());
     getBuilder().setDiscoveredNodes(discoveredNodes);
-    getBuilder().clearAlreadyVisited();
+    getBuilder().removeFromAlreadyVisitedNodes(uninitializedFieldState.getCgNodesWithReplacements());
     solveImpl(monitor, uninitializedFieldState);
+    if (!collect.isEmpty()){
+      solve(monitor);
+    }
   }
 
   private void solveImpl(IProgressMonitor monitor,

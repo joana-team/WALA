@@ -1486,4 +1486,12 @@ public abstract class PropagationCallGraphBuilder implements CallGraphBuilder<In
   void clearAlreadyVisited(){
     this.alreadyVisited.clear();
   }
+
+  public Set<CGNode> getAlreadyVisited() {
+    return alreadyVisited;
+  }
+
+  public void removeFromAlreadyVisitedNodes(Set<CGNode> nodes) {
+    alreadyVisited.removeAll(nodes);
+  }
 }
