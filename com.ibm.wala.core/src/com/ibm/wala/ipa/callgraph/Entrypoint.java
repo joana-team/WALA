@@ -95,7 +95,7 @@ public abstract class Entrypoint implements BytecodeConstants {
    * 
    * @return value number holding the parameter to the call; -1 if there was some error
    */
-  protected int makeArgument(AbstractRootMethod m, int i, UninitializedFieldHelperOptions fieldHelperOptions) {
+  protected int makeArgument(AbstractRootMethod m, int i, UninitializedFieldClass uninitializedFieldClass) {
     TypeReference[] p = getParameterTypes(i);
     if (p.length == 0) {
       return -1;
@@ -103,8 +103,8 @@ public abstract class Entrypoint implements BytecodeConstants {
       if (p[0].isPrimitiveType()) {
         return m.addLocal();
       } else {
-        if (fieldHelperOptions.hasFieldForType(p[0])){
-          return m.addGetStatic(fieldHelperOptions.getFieldForType(p[0]).getReference());
+        if (uninitializedFieldClass != null && uninitializedFieldClass.getOptions().getFieldHelperOptions().matchType(p[0])){
+          return m.addGetStatic(uninitializedFieldClass.getField(p[0]).getReference());
         }
         SSANewInstruction n = m.addAllocation(p[0]);
         return (n == null) ? -1 : n.getDef();
@@ -114,8 +114,8 @@ public abstract class Entrypoint implements BytecodeConstants {
       int countErrors = 0;
       for (int j = 0; j < p.length; j++) {
         int value;
-        if (fieldHelperOptions.hasFieldForType(p[0])) {
-          value = m.addGetStatic(fieldHelperOptions.getFieldForType(p[0]).getReference());
+        if (uninitializedFieldClass != null && uninitializedFieldClass.getOptions().getFieldHelperOptions().matchType(p[0])){
+          value = m.addGetStatic(uninitializedFieldClass.getField(p[0]).getReference());
         } else {
           SSANewInstruction n = m.addAllocation(p[j]);
           value = (n == null) ? -1 : n.getDef();
@@ -162,9 +162,11 @@ public abstract class Entrypoint implements BytecodeConstants {
    * Add a call to this entrypoint from the fake root method
    * 
    * @param m the Fake Root Method
+   * @param uninitializedFieldClass field class, might be null
    * @return the call instruction added, or null if the operation fails
    */
-  public SSAAbstractInvokeInstruction addCall(AbstractRootMethod m, UninitializedFieldHelperOptions fieldHelperOptions) {
+  public SSAAbstractInvokeInstruction addCall(AbstractRootMethod m,
+      UninitializedFieldClass uninitializedFieldClass) {
     int paramValues[];
     CallSiteReference site = makeSite(0);
     if (site == null) {
@@ -172,7 +174,7 @@ public abstract class Entrypoint implements BytecodeConstants {
     }
     paramValues = new int[getNumberOfParameters()];
     for (int j = 0; j < paramValues.length; j++) {
-      paramValues[j] = makeArgument(m, j, fieldHelperOptions);
+      paramValues[j] = makeArgument(m, j, uninitializedFieldClass);
       if (paramValues[j] == -1) {
         // there was a problem
         return null;
@@ -218,4 +220,5 @@ public abstract class Entrypoint implements BytecodeConstants {
   public int hashCode() {
     return method.hashCode() * 1009;
   }
+
 }

@@ -462,8 +462,4 @@ public class AnalysisOptions {
   boolean hasFieldHelperOptions(){
     return fieldHelperOptions.isEmpty();
   }
-
-  boolean hasFieldHelperForType(TypeReference type){
-    return fieldHelperOptions.hasFieldForType(type);
-  }
 }

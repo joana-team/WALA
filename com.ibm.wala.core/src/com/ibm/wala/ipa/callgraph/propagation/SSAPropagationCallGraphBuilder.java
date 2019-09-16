@@ -572,7 +572,7 @@ public abstract class SSAPropagationCallGraphBuilder extends PropagationCallGrap
   /**
    * A visitor that generates constraints based on statements in SSA form.
    */
-  protected static class ConstraintVisitor extends SSAInstruction.Visitor {
+  public static class ConstraintVisitor extends SSAInstruction.Visitor {
 
     /**
      * The governing call graph builder. This field is used instead of an inner class in order to allow more flexible reuse of this
@@ -734,12 +734,16 @@ public abstract class SSAPropagationCallGraphBuilder extends PropagationCallGrap
       if (instruction.typeIsPrimitive()) {
         return;
       }
-      doVisitArrayLoad(instruction.getDef(), instruction.getArrayRef());
+      doVisitArrayLoad(instruction.getDef(), instruction.getArrayRef(), instruction.getElementType());
     }
 
-    protected void doVisitArrayLoad(int def, int arrayRef) {
+    protected void doVisitArrayLoad(int def, int arrayRef, TypeReference elementType) {
       PointerKey result = getPointerKeyForLocal(def);
       PointerKey arrayRefPtrKey = getPointerKeyForLocal(arrayRef);
+      if (getBuilder().uninitializedFieldState.shouldAssign(arrayRefPtrKey)){
+        // the array is uninitialized
+        getBuilder().uninitializedFieldState.assign(builder, result, elementType);
+      }
       if (hasNoInterestingUses(def)) {
         system.recordImplicitPointsToSet(result);
       } else {
@@ -933,14 +937,6 @@ public abstract class SSAPropagationCallGraphBuilder extends PropagationCallGrap
       }
 
       PointerKey def = getPointerKeyForLocal(lval);
-      if (getBuilder().uninitializedFieldState.shouldReplace(def)){
-        PointsToMap pointsToMap = getBuilder().getSystem().pointsToMap;
-        pointsToMap.put(def, new PointsToSetVariable(def));
-        for (PointerKey replacement : getBuilder().uninitializedFieldState.getReplacements(def)) {
-          system.newConstraint(def, assignOperator, replacement);
-        }
-        return;
-      }
       assert def != null;
 
       IField f = getClassHierarchy().resolveField(field);
@@ -974,23 +970,19 @@ public abstract class SSAPropagationCallGraphBuilder extends PropagationCallGrap
       } else {
         if (isStatic) {
           PointerKey fKey = getPointerKeyForStaticField(f);
-          if (getBuilder().uninitializedFieldState.shouldReplace(def)){
-            for (PointerKey replacement : getBuilder().uninitializedFieldState.getReplacements(def)) {
-              system.newConstraint(def, assignOperator, replacement);
-            }
+          if (getBuilder().uninitializedFieldState.shouldAssign(def)){
+            getBuilder().uninitializedFieldState.assign(builder, def);
           } else {
-            builder.uninitializedFieldState.recordFieldAccess(field, def, node);
+            getBuilder().uninitializedFieldState.record(field, def, node);
             system.newConstraint(def, assignOperator, fKey);
           }
         } else {
           PointerKey refKey = getPointerKeyForLocal(ref);
-          if (getBuilder().uninitializedFieldState.shouldReplace(def)){
-            for (PointerKey replacement : getBuilder().uninitializedFieldState.getReplacements(def)) {
-            system.newConstraint(def, assignOperator, replacement);
-          }
+          if (getBuilder().uninitializedFieldState.shouldAssign(def)){
+            getBuilder().uninitializedFieldState.assign(builder, def);
             return;
           } else {
-            builder.uninitializedFieldState.recordFieldAccess(field, def, node);
+            getBuilder().uninitializedFieldState.record(field, def, node);
           }
           // if (!supportFullPointerFlowGraph &&
           // contentsAreInvariant(ref)) {
@@ -1118,9 +1110,6 @@ public abstract class SSAPropagationCallGraphBuilder extends PropagationCallGrap
         Warnings.add(FieldResolutionFailure.create(field));
       } else {
         processClassInitializer(klass);
-      }
-      if (f.getDeclaringClass().equals(getBuilder().getOptions().getFieldHelperOptions().getHelperClass())){
-        getBuilder().uninitializedFieldState.recordHelperClassFieldWrite(f.getReference(), fKey);
       }
     }
 

@@ -163,7 +163,7 @@ public abstract class PropagationCallGraphBuilder implements CallGraphBuilder<In
   /**
    * Has to be valid only when invoked with {@link StandardSolver}
    */
-  protected UninitializedFieldHelperOptions.UninitializedFieldState uninitializedFieldState;
+  protected UninitializedFieldState uninitializedFieldState;
 
   /**
    * @param cha governing class hierarchy
@@ -238,7 +238,7 @@ public abstract class PropagationCallGraphBuilder implements CallGraphBuilder<In
     discoveredNodes = HashSetFactory.make();
     discoveredNodes.add(callGraph.getFakeRootNode());
 
-    UninitializedFieldHelperClass fieldHelperClass = null;
+    UninitializedFieldClass fieldClass = null;
 
     // Set up the initially reachable methods and classes
     for (Entrypoint E : options.getEntrypoints()) {
@@ -247,13 +247,12 @@ public abstract class PropagationCallGraphBuilder implements CallGraphBuilder<In
       }
       AbstractRootMethod root = (AbstractRootMethod) callGraph.getFakeRootNode().getMethod();
       if (!options.getFieldHelperOptions().isEmpty()) {
-        if (fieldHelperClass == null){
-          fieldHelperClass = UninitializedFieldHelperClass.createAndAdd(E.getMethod().getDeclaringClass().getClassLoader(), E.getMethod().getClassHierarchy(), options);
+        if (fieldClass == null){
+          fieldClass = UninitializedFieldClass.createAndAdd(E.getMethod().getDeclaringClass().getClassLoader(), E.getMethod().getClassHierarchy(), options);
         }
-        fieldHelperClass.addInvocation(root);
-        options.getFieldHelperOptions().setHelperClass(fieldHelperClass);
+        fieldClass.addInvocation(root);
       }
-      SSAAbstractInvokeInstruction call = E.addCall(root, options.getFieldHelperOptions());
+      SSAAbstractInvokeInstruction call = E.addCall(root, options.getFieldHelperOptions().isEmpty() ? fieldClass : null);
       if (call == null) {
         Warnings.add(EntrypointResolutionWarning.create(E));
       } else {
