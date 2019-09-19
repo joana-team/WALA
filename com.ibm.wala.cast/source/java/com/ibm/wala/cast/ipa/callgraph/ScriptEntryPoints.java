@@ -18,7 +18,7 @@ import com.ibm.wala.classLoader.CallSiteReference;
 import com.ibm.wala.classLoader.IClass;
 import com.ibm.wala.classLoader.IMethod;
 import com.ibm.wala.ipa.callgraph.Entrypoint;
-import com.ibm.wala.ipa.callgraph.UninitializedFieldHelperOptions;
+import com.ibm.wala.ipa.callgraph.UninitializedFieldClass;
 import com.ibm.wala.ipa.callgraph.impl.AbstractRootMethod;
 import com.ibm.wala.ipa.cha.IClassHierarchy;
 import com.ibm.wala.ssa.SSAAbstractInvokeInstruction;
@@ -45,9 +45,9 @@ public abstract class ScriptEntryPoints implements Iterable<Entrypoint> {
     public TypeReference[] getParameterTypes(int i) {
       assert i == 0;
       if (getMethod().isStatic()) {
-	return new TypeReference[0];
+	      return new TypeReference[0];
       } else {
-	return new TypeReference[] { getMethod().getDeclaringClass().getReference() };
+	      return new TypeReference[] { getMethod().getDeclaringClass().getReference() };
       }
     }
 
@@ -58,17 +58,17 @@ public abstract class ScriptEntryPoints implements Iterable<Entrypoint> {
 
       
     @Override
-    public SSAAbstractInvokeInstruction addCall(AbstractRootMethod m, UninitializedFieldHelperOptions fieldHelperOptions){
+    public SSAAbstractInvokeInstruction addCall(AbstractRootMethod m, UninitializedFieldClass uninitializedFieldClass){
       CallSiteReference site = makeSite(0);
 
       if (site == null) {
         return null;
       }
 
-      int functionVn = getMethod().isStatic()? -1: makeArgument(m, 0, fieldHelperOptions);
+      int functionVn = getMethod().isStatic() ? -1: makeArgument(m, 0, uninitializedFieldClass);
       int paramVns[] = new int[Math.min(0, getNumberOfParameters() - 1)];
       for (int j = 0; j < paramVns.length; j++) {
-        paramVns[j] = makeArgument(m, j + 1, fieldHelperOptions);
+        paramVns[j] = makeArgument(m, j + 1, uninitializedFieldClass);
       }
 
       return ((ScriptFakeRoot) m).addDirectCall(functionVn, paramVns, site);

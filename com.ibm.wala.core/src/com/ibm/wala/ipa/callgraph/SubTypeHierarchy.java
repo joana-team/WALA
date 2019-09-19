@@ -3,7 +3,6 @@ package com.ibm.wala.ipa.callgraph;
 import com.ibm.wala.classLoader.IClass;
 import com.ibm.wala.ipa.cha.IClassHierarchy;
 import com.ibm.wala.types.TypeReference;
-import com.ibm.wala.util.strings.Atom;
 
 import java.util.*;
 
@@ -28,6 +27,8 @@ public class SubTypeHierarchy {
   }
 
   static class BoundedLinkedMap<K, V> extends LinkedHashMap<K, V> {
+
+    static final long serialVersionUID = 1097234606234l;
 
     private final int size;
 

@@ -10,28 +10,11 @@
  *******************************************************************************/
 package com.ibm.wala.ipa.callgraph.propagation;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-import java.util.function.Consumer;
-
 import com.ibm.wala.analysis.reflection.CloneInterpreter;
 import com.ibm.wala.cfg.ControlFlowGraph;
 import com.ibm.wala.cfg.IBasicBlock;
-import com.ibm.wala.classLoader.ArrayClass;
-import com.ibm.wala.classLoader.CallSiteReference;
-import com.ibm.wala.classLoader.IClass;
-import com.ibm.wala.classLoader.IField;
-import com.ibm.wala.classLoader.IMethod;
-import com.ibm.wala.classLoader.NewSiteReference;
-import com.ibm.wala.classLoader.ProgramCounter;
+import com.ibm.wala.classLoader.*;
 import com.ibm.wala.fixpoint.AbstractOperator;
-import com.ibm.wala.fixpoint.IFixedPointStatement;
 import com.ibm.wala.ipa.callgraph.*;
 import com.ibm.wala.ipa.callgraph.impl.AbstractRootMethod;
 import com.ibm.wala.ipa.callgraph.impl.DefaultEntrypoint;
@@ -40,31 +23,9 @@ import com.ibm.wala.ipa.callgraph.impl.FakeRootMethod;
 import com.ibm.wala.ipa.cha.IClassHierarchy;
 import com.ibm.wala.shrikeBT.ConditionalBranchInstruction;
 import com.ibm.wala.shrikeBT.IInvokeInstruction;
-import com.ibm.wala.ssa.DefUse;
-import com.ibm.wala.ssa.IRView;
-import com.ibm.wala.ssa.ISSABasicBlock;
-import com.ibm.wala.ssa.SSAAbstractInvokeInstruction;
-import com.ibm.wala.ssa.SSAAbstractThrowInstruction;
-import com.ibm.wala.ssa.SSAArrayLoadInstruction;
-import com.ibm.wala.ssa.SSAArrayStoreInstruction;
-import com.ibm.wala.ssa.SSACFG;
+import com.ibm.wala.ssa.*;
 import com.ibm.wala.ssa.SSACFG.BasicBlock;
 import com.ibm.wala.ssa.SSACFG.ExceptionHandlerBasicBlock;
-import com.ibm.wala.ssa.SSACheckCastInstruction;
-import com.ibm.wala.ssa.SSAConditionalBranchInstruction;
-import com.ibm.wala.ssa.SSAGetCaughtExceptionInstruction;
-import com.ibm.wala.ssa.SSAGetInstruction;
-import com.ibm.wala.ssa.SSAInstanceofInstruction;
-import com.ibm.wala.ssa.SSAInstruction;
-import com.ibm.wala.ssa.SSAInvokeInstruction;
-import com.ibm.wala.ssa.SSALoadMetadataInstruction;
-import com.ibm.wala.ssa.SSANewInstruction;
-import com.ibm.wala.ssa.SSAPhiInstruction;
-import com.ibm.wala.ssa.SSAPiInstruction;
-import com.ibm.wala.ssa.SSAPutInstruction;
-import com.ibm.wala.ssa.SSAReturnInstruction;
-import com.ibm.wala.ssa.SSAThrowInstruction;
-import com.ibm.wala.ssa.SymbolTable;
 import com.ibm.wala.types.FieldReference;
 import com.ibm.wala.types.MethodReference;
 import com.ibm.wala.types.Selector;
@@ -76,16 +37,13 @@ import com.ibm.wala.util.collections.HashSetFactory;
 import com.ibm.wala.util.collections.Iterator2Iterable;
 import com.ibm.wala.util.debug.Assertions;
 import com.ibm.wala.util.debug.UnimplementedError;
-import com.ibm.wala.util.intset.IntIterator;
-import com.ibm.wala.util.intset.IntSet;
-import com.ibm.wala.util.intset.IntSetAction;
-import com.ibm.wala.util.intset.IntSetUtil;
-import com.ibm.wala.util.intset.MutableIntSet;
+import com.ibm.wala.util.intset.*;
 import com.ibm.wala.util.ref.ReferenceCleanser;
 import com.ibm.wala.util.warnings.Warning;
 import com.ibm.wala.util.warnings.Warnings;
 
-import static com.ibm.wala.ipa.callgraph.propagation.PointsToMap.IMPLICIT;
+import java.util.*;
+import java.util.function.Consumer;
 
 /**
  * This abstract base class provides the general algorithm for a call graph builder that relies on propagation through an iterative

@@ -10,25 +10,23 @@
  *******************************************************************************/
 package com.ibm.wala.ipa.callgraph;
 
-import java.util.*;
-
 import com.ibm.wala.analysis.typeInference.ConeType;
 import com.ibm.wala.analysis.typeInference.PrimitiveType;
 import com.ibm.wala.analysis.typeInference.TypeAbstraction;
-import com.ibm.wala.classLoader.*;
+import com.ibm.wala.classLoader.CallSiteReference;
+import com.ibm.wala.classLoader.IClass;
+import com.ibm.wala.classLoader.IMethod;
 import com.ibm.wala.ipa.callgraph.impl.AbstractRootMethod;
-import com.ibm.wala.ipa.cha.ClassHierarchy;
 import com.ibm.wala.ipa.cha.IClassHierarchy;
 import com.ibm.wala.shrikeBT.BytecodeConstants;
 import com.ibm.wala.shrikeBT.IInvokeInstruction;
-import com.ibm.wala.shrikeCT.ClassConstants;
-import com.ibm.wala.ssa.*;
-import com.ibm.wala.types.FieldReference;
+import com.ibm.wala.ssa.SSAAbstractInvokeInstruction;
+import com.ibm.wala.ssa.SSANewInstruction;
 import com.ibm.wala.types.MethodReference;
-import com.ibm.wala.types.Selector;
 import com.ibm.wala.types.TypeReference;
 import com.ibm.wala.util.debug.Assertions;
-import com.ibm.wala.util.strings.Atom;
+
+import java.util.Arrays;
 
 /**
  * A representation of an entrypoint in the call graph.

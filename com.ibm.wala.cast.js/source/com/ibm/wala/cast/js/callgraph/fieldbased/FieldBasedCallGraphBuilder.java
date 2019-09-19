@@ -160,7 +160,7 @@ public abstract class FieldBasedCallGraphBuilder {
 		CGNode fakeRootNode = cg.findOrCreateNode(fakeRootMethod, Everywhere.EVERYWHERE);
 		for (Entrypoint ep : eps) {
 			CGNode nd = cg.findOrCreateNode(ep.getMethod(), Everywhere.EVERYWHERE);
-			SSAAbstractInvokeInstruction invk = ep.addCall(fakeRootMethod);
+			SSAAbstractInvokeInstruction invk = ep.addCall(fakeRootMethod, null);
 			fakeRootNode.addTarget(invk.getCallSite(), nd);
 		}
 		// register the fake root as the "true" entrypoint
