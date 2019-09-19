@@ -13,6 +13,7 @@ package com.ibm.wala.ipa.callgraph.propagation;
 
 import com.ibm.wala.ipa.callgraph.CGNode;
 import com.ibm.wala.ipa.callgraph.SubTypeHierarchy;
+import com.ibm.wala.ipa.callgraph.UninitializedFieldHelperOptions;
 import com.ibm.wala.ipa.callgraph.UninitializedFieldState;
 import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.MonitorUtil.IProgressMonitor;
@@ -36,24 +37,26 @@ public class StandardSolver extends AbstractPointsToSolver {
    */
   @Override
   public void solve(IProgressMonitor monitor) throws IllegalArgumentException, CancelException {
-
-    getBuilder().getOptions().getFieldHelperOptions().setRoot(getBuilder().getCallGraph().getFakeRootNode());
-    UninitializedFieldState uninitializedFieldState =
-        new UninitializedFieldState(getBuilder().getOptions().getFieldHelperOptions(),
-            new SubTypeHierarchy(getBuilder().getClassHierarchy()));
-    Set<CGNode> discoveredNodes = new HashSet<>(getBuilder().getDiscoveredNodes());
-    solveImpl(monitor, uninitializedFieldState);
-    uninitializedFieldState.filterRecorded(k -> !this.hasPointsToSetFor(k));
-    //getSystem().getFixedPointSystem().getStatements()
-    //    .forEachRemaining(n -> getSystem().getFixedPointSystem()
-    //      .removeStatement((IFixedPointStatement<PointsToSetVariable>) n));
-    //getSystem().initializeWorkList();
-    discoveredNodes.addAll(uninitializedFieldState.getCGNodesWithReplacements());
-    getBuilder().setDiscoveredNodes(discoveredNodes);
-    getBuilder().removeFromAlreadyVisitedNodes(uninitializedFieldState.getCGNodesWithReplacements());
-    solveImpl(monitor, uninitializedFieldState);
-    if (!uninitializedFieldState.getKeysWithEmptySet().isEmpty()){
-      solve(monitor);
+    UninitializedFieldHelperOptions fieldHelperOptions = getBuilder().getOptions().getFieldHelperOptions();
+    if (fieldHelperOptions.isEmpty()){
+      solveImpl(monitor, UninitializedFieldState.createDummy());
+    } else {
+      fieldHelperOptions.setRoot(getBuilder().getCallGraph().getFakeRootNode());
+      UninitializedFieldState uninitializedFieldState = new UninitializedFieldState(fieldHelperOptions, new SubTypeHierarchy(getBuilder().getClassHierarchy()));
+      Set<CGNode> discoveredNodes = new HashSet<>(getBuilder().getDiscoveredNodes());
+      solveImpl(monitor, uninitializedFieldState);
+      uninitializedFieldState.filterRecorded(k -> !this.hasPointsToSetFor(k));
+      //getSystem().getFixedPointSystem().getStatements()
+      //    .forEachRemaining(n -> getSystem().getFixedPointSystem()
+      //      .removeStatement((IFixedPointStatement<PointsToSetVariable>) n));
+      //getSystem().initializeWorkList();
+      discoveredNodes.addAll(uninitializedFieldState.getCGNodesWithReplacements());
+      getBuilder().setDiscoveredNodes(discoveredNodes);
+      getBuilder().removeFromAlreadyVisitedNodes(uninitializedFieldState.getCGNodesWithReplacements());
+      solveImpl(monitor, uninitializedFieldState);
+      if (!uninitializedFieldState.getKeysWithEmptySet().isEmpty()) {
+        solve(monitor);
+      }
     }
   }
 

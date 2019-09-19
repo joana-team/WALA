@@ -1524,7 +1524,7 @@ public abstract class SSAPropagationCallGraphBuilder extends PropagationCallGrap
               }
             }          
           };
-          ef.addCall((AbstractRootMethod)callGraph.getFakeRootNode().getMethod(), getOptions().getFieldHelperOptions());
+          ef.addCall((AbstractRootMethod)callGraph.getFakeRootNode().getMethod(), null);
           getBuilder().markChanged(callGraph.getFakeRootNode());
         }
       }
