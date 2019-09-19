@@ -129,7 +129,7 @@ public class UninitializedFieldState {
     return subReferences.computeIfAbsent(t, tr -> {
       Set<TypeReference> base = new HashSet<>();
       Consumer<TypeReference> add = trr -> {
-        if (options.matchType(trr) && !trr.isPrimitiveType() && hierarchy.cha.lookupClass(trr) != null){
+        if (options.matchField(trr) && !trr.isPrimitiveType() && hierarchy.cha.lookupClass(trr) != null){
           base.add(trr);
         }
       };
@@ -148,9 +148,7 @@ public class UninitializedFieldState {
   }
 
   boolean match(TypeReference declaringType, TypeReference type){
-    return options.matchType(declaringType) &&
-        options.scopesForCollection.contains(type.getClassLoader().getName()) &&
-        !type.isPrimitiveType() && hierarchy.cha.lookupClass(type) != null;
+    return options.matchField(declaringType, type);
   }
 
   public UninitializedFieldState createNew() {
@@ -168,12 +166,8 @@ public class UninitializedFieldState {
     return keysWithEmptySet.stream().map(cgNodeMap::get).filter(Objects::nonNull).collect(Collectors.toSet());
   }
 
-  public boolean match(TypeReference type){
-    return options.matchType(type);
-  }
-
   public static UninitializedFieldState createDummy(){
-    return new UninitializedFieldState(new UninitializedFieldHelperOptions(), null){
+    return new UninitializedFieldState(UninitializedFieldHelperOptions.createEmpty(), null){
       @Override public Set<PointerKey> getCreatedKeys() {
         return Collections.emptySet();
       }
@@ -216,9 +210,6 @@ public class UninitializedFieldState {
         return Collections.emptySet();
       }
 
-      @Override public boolean match(TypeReference type) {
-        return false;
-      }
     };
   }
 }

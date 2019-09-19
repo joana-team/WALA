@@ -207,7 +207,7 @@ public class AnalysisOptions {
   }
 
   public AnalysisOptions(AnalysisScope scope, Iterable<? extends Entrypoint> e) {
-    this(scope, e, new UninitializedFieldHelperOptions());
+    this(scope, e, UninitializedFieldHelperOptions.createEmpty());
   }
 
   public AnalysisOptions(AnalysisScope scope, Iterable<? extends Entrypoint> e, UninitializedFieldHelperOptions fieldHelperOptions) {

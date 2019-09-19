@@ -101,7 +101,7 @@ public abstract class Entrypoint implements BytecodeConstants {
       if (p[0].isPrimitiveType()) {
         return m.addLocal();
       } else {
-        if (uninitializedFieldClass != null && uninitializedFieldClass.getOptions().getFieldHelperOptions().matchType(p[0])){
+        if (uninitializedFieldClass != null && uninitializedFieldClass.getOptions().getFieldHelperOptions().matchField(p[0])){
           return m.addGetStatic(uninitializedFieldClass.getField(p[0]).getReference());
         }
         SSANewInstruction n = m.addAllocation(p[0]);
@@ -112,7 +112,7 @@ public abstract class Entrypoint implements BytecodeConstants {
       int countErrors = 0;
       for (int j = 0; j < p.length; j++) {
         int value;
-        if (uninitializedFieldClass != null && uninitializedFieldClass.getOptions().getFieldHelperOptions().matchType(p[0])){
+        if (uninitializedFieldClass != null && uninitializedFieldClass.getOptions().getFieldHelperOptions().matchField(p[0])){
           value = m.addGetStatic(uninitializedFieldClass.getField(p[0]).getReference());
         } else {
           SSANewInstruction n = m.addAllocation(p[j]);
