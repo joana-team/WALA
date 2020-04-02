@@ -18,6 +18,7 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import static com.ibm.wala.ipa.callgraph.propagation.PropagationCallGraphBuilder.assignOperator;
 
@@ -143,7 +144,7 @@ public class UninitializedFieldState {
           }
         }
       }
-      return base.stream().map(hierarchy::getSubTypes).flatMap(Set::stream).collect(Collectors.toSet());
+      return Stream.concat(base.stream(), base.stream().map(hierarchy::getSubTypes).flatMap(Set::stream)).collect(Collectors.toSet());
     });
   }
 
