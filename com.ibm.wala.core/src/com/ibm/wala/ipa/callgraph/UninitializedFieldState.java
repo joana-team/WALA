@@ -3,6 +3,7 @@ package com.ibm.wala.ipa.callgraph;
 import com.ibm.wala.classLoader.IClass;
 import com.ibm.wala.classLoader.IField;
 import com.ibm.wala.classLoader.NewSiteReference;
+import com.ibm.wala.classLoader.NewTypedSiteReference;
 import com.ibm.wala.ipa.callgraph.propagation.InstanceKey;
 import com.ibm.wala.ipa.callgraph.propagation.PointerKey;
 import com.ibm.wala.ipa.callgraph.propagation.PropagationSystem;
@@ -100,7 +101,7 @@ public class UninitializedFieldState {
     System.err.println("Created for " + ref);
     PropagationSystem system = builder.getPropagationSystem();
     return keysPerType.computeIfAbsent(ref, rr -> IntStream.range(0, options.getCount()).mapToObj(r -> {
-      NewSiteReference site = new NewSiteReference(1, ref);
+      NewSiteReference site = new NewTypedSiteReference(1, ref);
       InstanceKey iKey = builder.getInstanceKeyForAllocation(options.getRoot(), site);
       if (iKey == null) { // abstract
         return null;
