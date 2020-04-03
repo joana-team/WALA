@@ -11,6 +11,7 @@
 
 package com.ibm.wala.classLoader;
 
+import com.ibm.wala.ipa.callgraph.propagation.InstanceKey;
 import com.ibm.wala.ssa.IR;
 import com.ibm.wala.types.TypeReference;
 
@@ -26,6 +27,8 @@ import com.ibm.wala.types.TypeReference;
  * Needed for {@link com.ibm.wala.ipa.callgraph.UninitializedFieldState}
  */
 public class NewTypedSiteReference extends NewSiteReference {
+
+  private InstanceKey instanceKey;
 
   /**
    * @param programCounter bytecode index of the allocation site
@@ -46,5 +49,17 @@ public class NewTypedSiteReference extends NewSiteReference {
   @Override public boolean equals(Object obj) {
     return super.equals(obj) && obj instanceof NewTypedSiteReference &&
         getDeclaredType().equals(((NewTypedSiteReference) obj).getDeclaredType());
+  }
+
+  @Override public boolean hasInstanceKey() {
+    return instanceKey != null;
+  }
+
+  @Override public void setInstanceKey(InstanceKey instanceKey) {
+    this.instanceKey = instanceKey;
+  }
+
+  @Override public InstanceKey getInstanceKey() {
+    return instanceKey;
   }
 }

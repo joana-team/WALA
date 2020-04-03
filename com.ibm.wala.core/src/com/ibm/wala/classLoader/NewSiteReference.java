@@ -11,6 +11,7 @@
 
 package com.ibm.wala.classLoader;
 
+import com.ibm.wala.ipa.callgraph.propagation.InstanceKey;
 import com.ibm.wala.ssa.IR;
 import com.ibm.wala.types.TypeReference;
 
@@ -21,6 +22,9 @@ import com.ibm.wala.types.TypeReference;
  * to defines equals() and hashCode() from ProgramCounter, since this class does not maintain a pointer to the containing IR (or
  * CGNode) anyway. If using a hashtable of NewSiteReference from different IRs, you probably want to use a wrapper which also holds
  * a pointer to the governing CGNode.
+ *
+ * Elements of the subclass {@link NewTypedSiteReference} can contain an associated instance key for building callgraphs with
+ * uninitialized fields.
  */
 public class NewSiteReference extends ProgramCounter {
 
@@ -49,5 +53,19 @@ public class NewSiteReference extends ProgramCounter {
   @Override
   public String toString() {
     return "NEW " + declaredType + "@" + getProgramCounter();
+  }
+
+  public boolean hasInstanceKey(){
+    return false;
+  }
+
+  public InstanceKey getInstanceKey(){
+    throw new AssertionError();
+  }
+
+  public void setInstanceKey(InstanceKey instanceKey){
+    if (false){
+      System.out.println(instanceKey);
+    }
   }
 }

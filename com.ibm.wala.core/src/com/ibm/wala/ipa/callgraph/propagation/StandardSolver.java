@@ -45,19 +45,32 @@ public class StandardSolver extends AbstractPointsToSolver {
       UninitializedFieldState uninitializedFieldState = new UninitializedFieldState(fieldHelperOptions, new SubTypeHierarchy(getBuilder().getClassHierarchy()));
       Set<CGNode> discoveredNodes = new HashSet<>(getBuilder().getDiscoveredNodes());
       solveImpl(monitor, uninitializedFieldState);
-      uninitializedFieldState.filterRecorded(k -> !this.hasPointsToSetFor(k));
-      //getSystem().getFixedPointSystem().getStatements()
-      //    .forEachRemaining(n -> getSystem().getFixedPointSystem()
-      //      .removeStatement((IFixedPointStatement<PointsToSetVariable>) n));
-      //getSystem().initializeWorkList();
-      discoveredNodes.addAll(uninitializedFieldState.getCGNodesWithReplacements());
-      getBuilder().setDiscoveredNodes(discoveredNodes);
-      getBuilder().removeFromAlreadyVisitedNodes(uninitializedFieldState.getCGNodesWithReplacements());
-      solveImpl(monitor, uninitializedFieldState);
+
+      solveImplWithUninitializedKeys(monitor, uninitializedFieldState, discoveredNodes);
+      while (uninitializedFieldState.hasKeyWithEmptySet()) {
+        // start a new run over all nodes, in case we missed an affected node
+        getSystem().initForFirstSolve();
+        solveImplWithUninitializedKeys(monitor, uninitializedFieldState, discoveredNodes);
+        if (!uninitializedFieldState.hasKeyWithEmptySet()) {
+          break; // we did not collect anything new
+        }
+        // we did collect something new, use this information
+        solveImplWithUninitializedKeys(monitor, uninitializedFieldState, discoveredNodes);
+      }
+
       if (!uninitializedFieldState.getKeysWithEmptySet().isEmpty()) {
         solve(monitor);
       }
     }
+  }
+
+  private void solveImplWithUninitializedKeys(IProgressMonitor monitor,  UninitializedFieldState uninitializedFieldState, Set<CGNode> discoveredNodes)
+      throws CancelException {
+    uninitializedFieldState.filterRecorded(k -> !this.hasPointsToSetFor(k));
+    discoveredNodes.addAll(uninitializedFieldState.getCGNodesWithReplacements());
+    getBuilder().setDiscoveredNodes(discoveredNodes);
+    getBuilder().removeFromAlreadyVisitedNodes(uninitializedFieldState.getCGNodesWithReplacements());
+    solveImpl(monitor, uninitializedFieldState);
   }
 
   private void solveImpl(IProgressMonitor monitor,

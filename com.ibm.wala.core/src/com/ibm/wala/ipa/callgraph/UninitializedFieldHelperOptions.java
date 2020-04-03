@@ -77,6 +77,9 @@ public class UninitializedFieldHelperOptions {
    */
   private CGNode root;
 
+  /**
+   * to prevent direct alias detection
+   */
   private final int count = 2;
 
   public UninitializedFieldHelperOptions(FieldTypeMatcher matcher) {

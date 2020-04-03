@@ -10,16 +10,8 @@
  *******************************************************************************/
 package com.ibm.wala.ipa.callgraph.propagation;
 
-import java.util.*;
-
 import com.ibm.wala.analysis.reflection.IllegalArgumentExceptionContext;
-import com.ibm.wala.classLoader.CallSiteReference;
-import com.ibm.wala.classLoader.IClass;
-import com.ibm.wala.classLoader.IField;
-import com.ibm.wala.classLoader.IMethod;
-import com.ibm.wala.classLoader.Language;
-import com.ibm.wala.classLoader.NewSiteReference;
-import com.ibm.wala.classLoader.SyntheticClass;
+import com.ibm.wala.classLoader.*;
 import com.ibm.wala.fixpoint.UnaryOperator;
 import com.ibm.wala.ipa.callgraph.*;
 import com.ibm.wala.ipa.callgraph.impl.AbstractRootMethod;
@@ -39,6 +31,8 @@ import com.ibm.wala.util.intset.IntSetUtil;
 import com.ibm.wala.util.intset.MutableIntSet;
 import com.ibm.wala.util.warnings.Warning;
 import com.ibm.wala.util.warnings.Warnings;
+
+import java.util.*;
 
 /**
  * This abstract base class provides the general algorithm for a call graph builder that relies on propagation through an iterative

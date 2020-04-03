@@ -34,6 +34,11 @@ public class UninitializedFieldClass extends SyntheticClass {
     constructor = createConstructor(t);
   }
 
+  @Override public String toString() {
+    return "UninitializedFieldClass{" + "constructor=" + constructor + ", fieldForType=" + fieldForType + ", typeForName="
+        + typeForName + ", options=" + options + '}';
+  }
+
   private IField createField(String name, TypeReference type){
     return new FieldImpl(this, FieldReference.findOrCreate(getReference(), Atom.findOrCreateUnicodeAtom(name), type),
         ClassConstants.ACC_PUBLIC | ClassConstants.ACC_STATIC, Collections.emptyList());

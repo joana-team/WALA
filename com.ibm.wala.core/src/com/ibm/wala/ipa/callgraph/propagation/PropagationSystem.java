@@ -10,26 +10,11 @@
  *******************************************************************************/
 package com.ibm.wala.ipa.callgraph.propagation;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import com.ibm.wala.classLoader.ArrayClass;
 import com.ibm.wala.classLoader.IClass;
 import com.ibm.wala.fixedpoint.impl.DefaultFixedPointSolver;
 import com.ibm.wala.fixedpoint.impl.Worklist;
-import com.ibm.wala.fixpoint.AbstractOperator;
-import com.ibm.wala.fixpoint.AbstractStatement;
-import com.ibm.wala.fixpoint.IFixedPointSystem;
-import com.ibm.wala.fixpoint.IVariable;
-import com.ibm.wala.fixpoint.UnaryOperator;
-import com.ibm.wala.fixpoint.UnaryStatement;
+import com.ibm.wala.fixpoint.*;
 import com.ibm.wala.ipa.callgraph.CallGraph;
 import com.ibm.wala.ipa.callgraph.propagation.PropagationCallGraphBuilder.FilterOperator;
 import com.ibm.wala.ipa.cha.ClassHierarchyException;
@@ -44,13 +29,11 @@ import com.ibm.wala.util.debug.VerboseAction;
 import com.ibm.wala.util.graph.Graph;
 import com.ibm.wala.util.graph.NumberedGraph;
 import com.ibm.wala.util.heapTrace.HeapTracer;
-import com.ibm.wala.util.intset.IntIterator;
-import com.ibm.wala.util.intset.IntSet;
-import com.ibm.wala.util.intset.IntSetUtil;
-import com.ibm.wala.util.intset.MutableIntSet;
-import com.ibm.wala.util.intset.MutableMapping;
+import com.ibm.wala.util.intset.*;
 import com.ibm.wala.util.ref.ReferenceCleanser;
 import com.ibm.wala.util.warnings.Warnings;
+
+import java.util.*;
 
 /**
  * System of constraints that define propagation for call graph construction

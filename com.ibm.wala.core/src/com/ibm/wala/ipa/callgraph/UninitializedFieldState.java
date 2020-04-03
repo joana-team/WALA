@@ -4,10 +4,7 @@ import com.ibm.wala.classLoader.IClass;
 import com.ibm.wala.classLoader.IField;
 import com.ibm.wala.classLoader.NewSiteReference;
 import com.ibm.wala.classLoader.NewTypedSiteReference;
-import com.ibm.wala.ipa.callgraph.propagation.InstanceKey;
-import com.ibm.wala.ipa.callgraph.propagation.PointerKey;
-import com.ibm.wala.ipa.callgraph.propagation.PropagationSystem;
-import com.ibm.wala.ipa.callgraph.propagation.SSAPropagationCallGraphBuilder;
+import com.ibm.wala.ipa.callgraph.propagation.*;
 import com.ibm.wala.ssa.SSAInstruction;
 import com.ibm.wala.ssa.SSAInstructionFactory;
 import com.ibm.wala.ssa.SSANewInstruction;
@@ -25,18 +22,23 @@ import static com.ibm.wala.ipa.callgraph.propagation.PropagationCallGraphBuilder
 
 public class UninitializedFieldState {
 
+  /**
+   * Log assignments, recordings and creations
+   */
+  private static final boolean log = false;
+
   private final UninitializedFieldHelperOptions options;
   /**
    * Might be null
    */
-  private Map<PointerKey, TypeReference> recorded = new HashMap<>();
+  private final Map<PointerKey, TypeReference> recorded = new HashMap<>();
   private final SubTypeHierarchy hierarchy;
   private final Map<TypeReference, Set<PointerKey>> keysPerType;
   private final Map<TypeReference, Set<TypeReference>> subReferences;
   private final Map<PointerKey, CGNode> cgNodeMap;
 
   /**
-   * Keys with empty points to set. Only these pointer keys will be considered for assignments to generated pointer sets
+   * Keys with empty points to set. Only these pointer keys will be considered for assignments to generated pointer sets.
    */
   private Set<PointerKey> keysWithEmptySet = new HashSet<>();
 
@@ -63,7 +65,7 @@ public class UninitializedFieldState {
 
   public void record(TypeReference declaringType, TypeReference type, PointerKey key, CGNode node){
     if (match(declaringType, type)){
-      System.err.println(declaringType + "#" + type);
+      log("Record " + declaringType + "#" + type);
       recorded.put(key, type);
       cgNodeMap.put(key, node);
     }
@@ -89,7 +91,14 @@ public class UninitializedFieldState {
    * For not recorded keys
    */
   public void assign(SSAPropagationCallGraphBuilder builder, PointerKey key, TypeReference type){
-    assert shouldAssign(key);
+    if (!shouldAssign(key)){
+      throw new AssertionError();
+    }
+    assignWoCheck(builder, key, type);
+  }
+
+  private void assignWoCheck(SSAPropagationCallGraphBuilder builder, PointerKey key, TypeReference type){
+    log("Assign " + type.toString());
     for (TypeReference t : getSuitableTypeReferences(type)) {
       for (PointerKey pointerKey : create(builder, t)) {
         builder.getPropagationSystem().newConstraint(key, assignOperator, pointerKey);
@@ -97,27 +106,46 @@ public class UninitializedFieldState {
     }
   }
 
+  /**
+   * For arrays.
+   *
+   * Assumption: type parameter is meaningless, use recorded type of arrayRef
+   */
+  public void assignArrayElement(SSAPropagationCallGraphBuilder builder, PointerKey key, PointerKey arrayRef){
+    if (!shouldAssign(arrayRef)){
+      throw new AssertionError();
+    }
+    TypeReference recordedType = recorded.get(arrayRef).getArrayElementType();
+    assignWoCheck(builder, key, recordedType);
+  }
+
   private Set<PointerKey> create(SSAPropagationCallGraphBuilder builder, TypeReference ref){
-    System.err.println("Created for " + ref);
+    log("Created for " + ref);
     PropagationSystem system = builder.getPropagationSystem();
     return keysPerType.computeIfAbsent(ref, rr -> IntStream.range(0, options.getCount()).mapToObj(r -> {
       NewSiteReference site = new NewTypedSiteReference(1, ref);
-      InstanceKey iKey = builder.getInstanceKeyForAllocation(options.getRoot(), site);
+      IClass klass = builder.getOptions().getClassTargetSelector().getAllocatedTarget(options.getRoot(), site);
+      if (klass == null || klass.isInterface() || klass.isAbstract()){
+        return null;
+      }
+      InstanceKey iKey;
+      if (klass.isArrayClass()) {
+        iKey = new NormalAllocationInNode(options.getRoot(), site, klass);
+      } else {
+        iKey = builder.getInstanceKeyForAllocation(options.getRoot(), site);
+      }
       if (iKey == null) { // abstract
         return null;
       }
+      site.setInstanceKey(iKey);
       PointerKey def = builder.getPointerKeyForLocal(options.getRoot(), Integer.MAX_VALUE - r);
-      IClass klass = iKey.getConcreteType();
-      if (klass == null){
-        return null;
-      }
       system.newConstraint(def, iKey);
 
       SSAPropagationCallGraphBuilder.ConstraintVisitor constraintVisitor = new SSAPropagationCallGraphBuilder.ConstraintVisitor(
           builder, options.getRoot());
       constraintVisitor.visitNew(new SSANewInstruction(0, Integer.MAX_VALUE, site) {
-        @Override public SSAInstruction copyForSSA(SSAInstructionFactory insts, int[] defs, int[] uses) {
-          return super.copyForSSA(insts, defs, uses);
+        @Override public SSAInstruction copyForSSA(SSAInstructionFactory ints, int[] defs, int[] uses) {
+          return super.copyForSSA(ints, defs, uses);
         }
       });
       return def;
@@ -136,15 +164,6 @@ public class UninitializedFieldState {
         }
       };
       add.accept(t);
-      if (t.isArrayType()){
-        TypeReference cur = t;
-        while (cur.isArrayType()){
-          cur = cur.getArrayElementType();
-          if (!cur.isPrimitiveType()) {
-            add.accept(cur);
-          }
-        }
-      }
       return Stream.concat(base.stream(), base.stream().map(hierarchy::getSubTypes).flatMap(Set::stream)).collect(Collectors.toSet());
     });
   }
@@ -166,6 +185,16 @@ public class UninitializedFieldState {
 
   public Set<CGNode> getCGNodesWithReplacements() {
     return keysWithEmptySet.stream().map(cgNodeMap::get).filter(Objects::nonNull).collect(Collectors.toSet());
+  }
+
+  public boolean hasKeyWithEmptySet() {
+    return keysWithEmptySet.size() > 0;
+  }
+
+  private static void log(String msg){
+    if (log) {
+      System.err.println(msg);
+    }
   }
 
   public static UninitializedFieldState createDummy(){
@@ -195,6 +224,9 @@ public class UninitializedFieldState {
       }
 
       @Override public void assign(SSAPropagationCallGraphBuilder builder, PointerKey key, TypeReference type) {
+      }
+
+      @Override public void assignArrayElement(SSAPropagationCallGraphBuilder builder, PointerKey key, PointerKey arrayRef) {
       }
 
       @Override boolean match(TypeReference declaringType, TypeReference type) {

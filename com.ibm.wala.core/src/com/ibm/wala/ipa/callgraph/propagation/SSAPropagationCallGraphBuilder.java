@@ -631,6 +631,9 @@ public abstract class SSAPropagationCallGraphBuilder extends PropagationCallGrap
     }
 
     public InstanceKey getInstanceKeyForAllocation(NewSiteReference allocation) {
+      if (allocation.hasInstanceKey()){
+        return allocation.getInstanceKey();
+      }
       return getBuilder().getInstanceKeyForAllocation(node, allocation);
     }
 
@@ -692,15 +695,15 @@ public abstract class SSAPropagationCallGraphBuilder extends PropagationCallGrap
       if (instruction.typeIsPrimitive()) {
         return;
       }
-      doVisitArrayLoad(instruction.getDef(), instruction.getArrayRef(), instruction.getElementType());
+      doVisitArrayLoad(instruction.getDef(), instruction.getArrayRef()/*, instruction.getElementType()*/);
     }
 
-    protected void doVisitArrayLoad(int def, int arrayRef, TypeReference elementType) {
+    protected void doVisitArrayLoad(int def, int arrayRef/*, TypeReference elementType*/) {
       PointerKey result = getPointerKeyForLocal(def);
       PointerKey arrayRefPtrKey = getPointerKeyForLocal(arrayRef);
       if (getBuilder().uninitializedFieldState.shouldAssign(arrayRefPtrKey)){
         // the array is uninitialized
-        getBuilder().uninitializedFieldState.assign(builder, result, elementType);
+        getBuilder().uninitializedFieldState.assignArrayElement(builder, result, arrayRefPtrKey);
       }
       if (hasNoInterestingUses(def)) {
         system.recordImplicitPointsToSet(result);
