@@ -11,10 +11,7 @@
 package com.ibm.wala.ipa.callgraph.propagation;
 
 
-import com.ibm.wala.ipa.callgraph.CGNode;
-import com.ibm.wala.ipa.callgraph.SubTypeHierarchy;
-import com.ibm.wala.ipa.callgraph.UninitializedFieldHelperOptions;
-import com.ibm.wala.ipa.callgraph.UninitializedFieldState;
+import com.ibm.wala.ipa.callgraph.*;
 import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.MonitorUtil.IProgressMonitor;
 

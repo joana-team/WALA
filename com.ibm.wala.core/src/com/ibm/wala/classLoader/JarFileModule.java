@@ -10,6 +10,12 @@
  *******************************************************************************/
 package com.ibm.wala.classLoader;
 
+import com.ibm.wala.util.collections.HashMapFactory;
+import com.ibm.wala.util.collections.HashSetFactory;
+import com.ibm.wala.util.debug.Assertions;
+import com.ibm.wala.util.io.FileUtil;
+import com.ibm.wala.util.ref.CacheReference;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Enumeration;
@@ -18,12 +24,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.jar.JarFile;
 import java.util.zip.ZipEntry;
-
-import com.ibm.wala.util.collections.HashMapFactory;
-import com.ibm.wala.util.collections.HashSetFactory;
-import com.ibm.wala.util.debug.Assertions;
-import com.ibm.wala.util.io.FileUtil;
-import com.ibm.wala.util.ref.CacheReference;
 
 /**
  * A module which is a wrapper around a Jar file
@@ -116,4 +116,20 @@ public class JarFileModule implements Module {
     return file;
   }
 
-}
+  /**
+   * Read the main class from the manifest, might be null
+   */
+  public String getMainClass() {
+    try {
+      return this.file.getManifest().getMainAttributes().getValue("Main-Class");
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+    return null;
+  }
+
+  public boolean hasMainClass(){
+    return getMainClass() != null;
+  }
+
+ }

@@ -10,45 +10,22 @@
  *******************************************************************************/
 package com.ibm.wala.ipa.callgraph;
 
-import java.io.File;
-import java.io.NotSerializableException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.jar.Attributes;
-import java.util.jar.JarFile;
-import java.util.jar.Manifest;
-
-import com.ibm.wala.classLoader.ArrayClassLoader;
-import com.ibm.wala.classLoader.BinaryDirectoryTreeModule;
-import com.ibm.wala.classLoader.ClassFileModule;
-import com.ibm.wala.classLoader.IClassLoader;
-import com.ibm.wala.classLoader.JarFileModule;
-import com.ibm.wala.classLoader.Language;
-import com.ibm.wala.classLoader.Module;
-import com.ibm.wala.classLoader.SourceDirectoryTreeModule;
-import com.ibm.wala.classLoader.SourceFileModule;
+import com.ibm.wala.classLoader.*;
 import com.ibm.wala.shrikeCT.InvalidClassFileException;
-import com.ibm.wala.types.ClassLoaderReference;
-import com.ibm.wala.types.Descriptor;
-import com.ibm.wala.types.MethodReference;
-import com.ibm.wala.types.TypeName;
-import com.ibm.wala.types.TypeReference;
-import com.ibm.wala.util.collections.FilterIterator;
-import com.ibm.wala.util.collections.HashMapFactory;
-import com.ibm.wala.util.collections.HashSetFactory;
-import com.ibm.wala.util.collections.MapIterator;
-import com.ibm.wala.util.collections.MapUtil;
+import com.ibm.wala.types.*;
+import com.ibm.wala.util.collections.*;
 import com.ibm.wala.util.config.SetOfClasses;
 import com.ibm.wala.util.debug.Assertions;
 import com.ibm.wala.util.io.RtJar;
 import com.ibm.wala.util.strings.Atom;
 import com.ibm.wala.util.strings.ImmutableByteArray;
+
+import java.io.File;
+import java.io.NotSerializableException;
+import java.util.*;
+import java.util.jar.Attributes;
+import java.util.jar.JarFile;
+import java.util.jar.Manifest;
 
 /**
  * Base class that represents a set of files to analyze.
@@ -480,5 +457,17 @@ public class AnalysisScope {
 
     ShallowAnalysisScope shallowScope = new ShallowAnalysisScope(getExclusions(), moduleLines, ldrImplLines);
     return shallowScope;
+  }
+
+  /**
+   * Obtain the main class from the Manifest of a JAR belonging to the passed class loader, else return null
+   */
+  public TypeReference getMainClass(ClassLoaderReference cl) {
+    for (Module module : getModules(cl)) {
+      if (module instanceof JarFileModule && ((JarFileModule)module).hasMainClass()){
+        return TypeReference.findOrCreate(cl, ((JarFileModule)module).getMainClass());
+      }
+    }
+    return null;
   }
 }

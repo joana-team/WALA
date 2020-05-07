@@ -62,6 +62,8 @@ public class AnalysisOptions {
 
   private UninitializedFieldHelperOptions fieldHelperOptions;
 
+  private InterfaceImplementationOptions interfaceImplOptions;
+
   /**
    * options for handling reflection during call graph construction
    */
@@ -207,13 +209,15 @@ public class AnalysisOptions {
   }
 
   public AnalysisOptions(AnalysisScope scope, Iterable<? extends Entrypoint> e) {
-    this(scope, e, UninitializedFieldHelperOptions.createEmpty());
+    this(scope, e, UninitializedFieldHelperOptions.createEmpty(), InterfaceImplementationOptions.createEmpty());
   }
 
-  public AnalysisOptions(AnalysisScope scope, Iterable<? extends Entrypoint> e, UninitializedFieldHelperOptions fieldHelperOptions) {
+  public AnalysisOptions(AnalysisScope scope, Iterable<? extends Entrypoint> e,
+      UninitializedFieldHelperOptions fieldHelperOptions, InterfaceImplementationOptions interfaceImplOptions) {
     this.analysisScope = scope;
     this.entrypoints = e;
     this.fieldHelperOptions = fieldHelperOptions;
+    this.interfaceImplOptions = interfaceImplOptions;
   }
 
   public AnalysisScope getAnalysisScope() {
@@ -460,5 +464,17 @@ public class AnalysisOptions {
    */
   boolean hasFieldHelperOptions(){
     return fieldHelperOptions.isEmpty();
+  }
+
+  public InterfaceImplementationOptions getInterfaceImplOptions() {
+    return interfaceImplOptions;
+  }
+
+  public void setInterfaceImplOptions(InterfaceImplementationOptions interfaceImplOptions) {
+    this.interfaceImplOptions = interfaceImplOptions;
+  }
+
+  boolean hasInterfaceImplOptions(){
+    return interfaceImplOptions.isEmpty();
   }
 }

@@ -159,6 +159,8 @@ public abstract class PropagationCallGraphBuilder implements CallGraphBuilder<In
    */
   protected UninitializedFieldState uninitializedFieldState;
 
+  protected InterfaceImplementationState interfaceImplementationState;
+
   /**
    * @param cha governing class hierarchy
    * @param options governing call graph construction options
@@ -234,17 +236,17 @@ public abstract class PropagationCallGraphBuilder implements CallGraphBuilder<In
 
     UninitializedFieldClass fieldClass = null;
 
+    AbstractRootMethod root = (AbstractRootMethod) callGraph.getFakeRootNode().getMethod();
+    if (!options.getFieldHelperOptions().isEmpty()) {
+      fieldClass = UninitializedFieldClass.createAndAdd(root.getDeclaringClass().getClassLoader(), root.getClassHierarchy(), options);
+      fieldClass.addInvocation(root);
+      fieldClass.accessAllFieldsInMethod(root);
+    }
+
     // Set up the initially reachable methods and classes
     for (Entrypoint E : options.getEntrypoints()) {
       if (DEBUG_ENTRYPOINTS) {
         System.err.println("Entrypoint: " + E);
-      }
-      AbstractRootMethod root = (AbstractRootMethod) callGraph.getFakeRootNode().getMethod();
-      if (!options.getFieldHelperOptions().isEmpty()) {
-        if (fieldClass == null){
-          fieldClass = UninitializedFieldClass.createAndAdd(E.getMethod().getDeclaringClass().getClassLoader(), E.getMethod().getClassHierarchy(), options);
-        }
-        fieldClass.addInvocation(root);
       }
       SSAAbstractInvokeInstruction call = E.addCall(root, options.getFieldHelperOptions().isEmpty() ? fieldClass : null);
       if (call == null) {
@@ -259,6 +261,8 @@ public abstract class PropagationCallGraphBuilder implements CallGraphBuilder<In
       throw new IllegalStateException("Could not create a entrypoint callsites: " +   Warnings.asString());
     }  
 /** END Custom change: throw exception on empty entry points. This is a severe issue that should not go undetected! */
+    options.getInterfaceImplOptions().createAndAddMultiple(root.getClassHierarchy().getRootClass().getClassLoader(),
+        getClassHierarchy(), options);
     customInit();
 
     solver = makeSolver();

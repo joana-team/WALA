@@ -10,18 +10,8 @@
  *******************************************************************************/
 package com.ibm.wala.ipa.callgraph.impl;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.Map;
-
 import com.ibm.wala.cfg.InducedCFG;
-import com.ibm.wala.classLoader.ArrayClass;
-import com.ibm.wala.classLoader.CallSiteReference;
-import com.ibm.wala.classLoader.IClass;
-import com.ibm.wala.classLoader.IMethod;
-import com.ibm.wala.classLoader.NewSiteReference;
-import com.ibm.wala.classLoader.SyntheticMethod;
+import com.ibm.wala.classLoader.*;
 import com.ibm.wala.ipa.callgraph.AnalysisOptions;
 import com.ibm.wala.ipa.callgraph.CGNode;
 import com.ibm.wala.ipa.callgraph.Context;
@@ -29,17 +19,9 @@ import com.ibm.wala.ipa.callgraph.IAnalysisCacheView;
 import com.ibm.wala.ipa.callgraph.propagation.rta.RTAContextInterpreter;
 import com.ibm.wala.ipa.cha.IClassHierarchy;
 import com.ibm.wala.ipa.summaries.SyntheticIR;
+import com.ibm.wala.shrikeBT.IConditionalBranchInstruction;
 import com.ibm.wala.shrikeBT.IInvokeInstruction;
-import com.ibm.wala.ssa.ConstantValue;
-import com.ibm.wala.ssa.IR;
-import com.ibm.wala.ssa.SSAArrayStoreInstruction;
-import com.ibm.wala.ssa.SSAInstruction;
-import com.ibm.wala.ssa.SSAInstructionFactory;
-import com.ibm.wala.ssa.SSAInvokeInstruction;
-import com.ibm.wala.ssa.SSANewInstruction;
-import com.ibm.wala.ssa.SSAOptions;
-import com.ibm.wala.ssa.SSAPhiInstruction;
-import com.ibm.wala.ssa.SSAReturnInstruction;
+import com.ibm.wala.ssa.*;
 import com.ibm.wala.types.FieldReference;
 import com.ibm.wala.types.MethodReference;
 import com.ibm.wala.types.TypeReference;
@@ -48,6 +30,11 @@ import com.ibm.wala.util.collections.HashMapFactory;
 import com.ibm.wala.util.debug.Assertions;
 import com.ibm.wala.util.warnings.Warning;
 import com.ibm.wala.util.warnings.Warnings;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.Map;
 
 /**
  * A synthetic method from the {@link FakeRootClass}
@@ -146,14 +133,43 @@ public abstract class AbstractRootMethod extends SyntheticMethod {
     return s;
   }
 
+
+  public SSAReturnInstruction addReturn(int vn) {
+    return addReturn(vn, getReturnType().isPrimitiveType());
+  }
+
   /**
    * Add a return statement
    */
   public SSAReturnInstruction addReturn(int vn, boolean isPrimitive) {
+    assert !returnsVoid();
     SSAReturnInstruction s = insts.ReturnInstruction(statements.size(), vn, isPrimitive);
     statements.add(s);
     cache.invalidate(this, Everywhere.EVERYWHERE);
     return s;
+  }
+
+  public boolean returnsVoid(){
+    return getReturnType() == TypeReference.Void;
+  }
+
+  /**
+   * Add a return statement for void returning method
+   */
+  public SSAReturnInstruction addReturn() {
+    assert returnsVoid();
+    SSAReturnInstruction s = insts.ReturnInstruction(statements.size());
+    statements.add(s);
+    cache.invalidate(this, Everywhere.EVERYWHERE);
+    return s;
+  }
+
+  /**
+   * if (local == local) { return ret }
+   */
+  public void addDummyReturnCondition(TypeReference localType, int local, TypeReference retType, int ret){
+    statements.add(insts.ConditionalBranchInstruction(statements.size(), IConditionalBranchInstruction.Operator.NE, localType, local, local, statements.size() + 2));
+    statements.add(insts.ReturnInstruction(statements.size(), ret, retType.isPrimitiveType()));
   }
 
   /**

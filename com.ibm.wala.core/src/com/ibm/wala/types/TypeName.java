@@ -10,15 +10,15 @@
  *******************************************************************************/
 package com.ibm.wala.types;
 
-import java.io.Serializable;
-import java.io.UTFDataFormatException;
-import java.util.Map;
-
 import com.ibm.wala.util.collections.HashMapFactory;
 import com.ibm.wala.util.debug.Assertions;
 import com.ibm.wala.util.strings.Atom;
 import com.ibm.wala.util.strings.ImmutableByteArray;
 import com.ibm.wala.util.strings.StringStuff;
+
+import java.io.Serializable;
+import java.io.UTFDataFormatException;
+import java.util.Map;
 
 /**
  * We've introduced this class to canonicalize Atoms that represent package names.
@@ -80,7 +80,11 @@ public final class TypeName implements Serializable {
     if (name == null) {
       throw new IllegalArgumentException("name is null");
     }
-    return findOrCreate(name, 0, name.length());
+    int len = name.length();
+    if (name.get(len - 1) == ';'){
+      len = len - 1;
+    }
+    return findOrCreate(name, 0, len);
   }
 
   public static TypeName findOrCreate(String name) throws IllegalArgumentException {

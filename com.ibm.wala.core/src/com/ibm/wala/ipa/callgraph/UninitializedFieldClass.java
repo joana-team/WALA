@@ -15,6 +15,8 @@ import com.ibm.wala.types.TypeReference;
 import com.ibm.wala.util.strings.Atom;
 
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 /**
  * Allows to convert an uninitialized argument access to an access to an uninitialized field
@@ -199,6 +201,41 @@ public class UninitializedFieldClass extends SyntheticClass {
     root.addInvocation(new int[0], CallSiteReference.make(0, constructor.getReference(),
         IInvokeInstruction.Dispatch.STATIC));
   }
+
+  private Map<IClass, IField> createFieldsForAllPossibleClasses(IClassHierarchy cha){
+    return StreamSupport.stream(cha.spliterator(), false)
+        .filter(c -> options.getFieldHelperOptions().matchField(c.getReference()))
+        .collect(Collectors.toMap(c -> c, c -> getField(c.getReference())));
+  }
+
+  /**
+   * Add accesses to all fields that the classes of belonging to the fields have to the root method
+   */
+  private void addAccessToFieldsOfFields(AbstractRootMethod root, Map<IClass, IField> fieldsPerClass){
+    for (IClass klass : fieldsPerClass.keySet()) {
+      IField klassField = fieldsPerClass.get(klass);
+      int klassObj = root.addGetStatic(klassField.getReference());
+      for (IField field : klass.getAllFields()) {
+        addAccessToField(root, klassObj, field);
+      }
+    }
+  }
+
+  private void addAccessToField(AbstractRootMethod root, int klassObj, IField field){
+    int val; // TODO: correct?
+    if (field.isStatic()){
+      val = root.addGetStatic(field.getReference());
+    } else {
+      val = root.addGetInstance(field.getReference(), klassObj);
+    }
+    root.addInvocation(new int[]{1}, CallSiteReference.make(0, MethodReference.findOrCreate(field.getFieldTypeReference(), MethodReference.finalizeSelector),
+        IInvokeInstruction.Dispatch.VIRTUAL));
+  }
+
+  public void accessAllFieldsInMethod(AbstractRootMethod root){
+    addAccessToFieldsOfFields(root, createFieldsForAllPossibleClasses(root.getClassHierarchy()));
+  }
+
 
   public AnalysisOptions getOptions() {
     return options;

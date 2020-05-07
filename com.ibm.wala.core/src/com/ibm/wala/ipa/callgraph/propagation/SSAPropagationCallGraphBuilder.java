@@ -892,7 +892,9 @@ public abstract class SSAPropagationCallGraphBuilder extends PropagationCallGrap
     public void visitGet(SSAGetInstruction instruction) {
       visitGetInternal(instruction.getDef(), instruction.getRef(), instruction.isStatic(), instruction.getDeclaredField());
     }
+
     protected void visitGetInternal(int lval, int ref, boolean isStatic, FieldReference field) {
+
       if (DEBUG) {
         System.err.println("visitGet " + field);
       }
@@ -926,7 +928,7 @@ public abstract class SSAPropagationCallGraphBuilder extends PropagationCallGrap
         return;
       }
 
-      if (hasNoInterestingUses(lval)) {
+      if (hasNoInterestingUses(lval) && !(this.node.getMethod().isSynthetic() && this.node.getMethod().toString().contains("fakeRootMethod"))) {
         system.recordImplicitPointsToSet(def);
       } else {
         if (isStatic) {
@@ -940,9 +942,18 @@ public abstract class SSAPropagationCallGraphBuilder extends PropagationCallGrap
         } else {
           PointerKey refKey = getPointerKeyForLocal(ref);
           if (getBuilder().uninitializedFieldState.shouldAssign(def)){
-            getBuilder().uninitializedFieldState.assign(builder, def);
+            InterfaceImplementationState implState = getBuilder().getOptions().getInterfaceImplOptions().getState();
+            if (implState.hasImplementationFor(f.getReference().getDeclaringClass())){ // interface impl specific
+              InterfaceImplementationClass impl = implState.getImplementation(f.getReference().getFieldType());
+              impl.assign(builder, getBuilder().uninitializedFieldState, refKey, def, f.getReference().getFieldType());
+            }
+            if (getBuilder().uninitializedFieldState.supports(getClassHierarchy(), f.getReference().getDeclaringClass())) {
+              // only use it when there are implementations of the interface/class that are not interface impls
+              getBuilder().uninitializedFieldState.assign(builder, def);
+            }
             return;
           } else {
+            //System.out.println(def + " " + field);
             getBuilder().uninitializedFieldState.record(field, def, node);
           }
           // if (!supportFullPointerFlowGraph &&

@@ -18,7 +18,9 @@ import static com.ibm.wala.ipa.callgraph.AnalysisScope.APPLICATION;
  * Options for generating a class containing fields for all project types that can be used whenever a field of a specific
  * type is not initialized (because it is initialized in code not called by the entry point)
  *
- * Currently only works when using the {@link SSAPropagationCallGraphBuilder} in combination with the {@link StandardSolver}
+ * Works currently only when using the {@link SSAPropagationCallGraphBuilder} in combination with the {@link StandardSolver}
+ *
+ * Assumes that there are no annotated fields.
  */
 public class UninitializedFieldHelperOptions {
 

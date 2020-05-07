@@ -5,6 +5,7 @@ import com.ibm.wala.classLoader.IField;
 import com.ibm.wala.classLoader.NewSiteReference;
 import com.ibm.wala.classLoader.NewTypedSiteReference;
 import com.ibm.wala.ipa.callgraph.propagation.*;
+import com.ibm.wala.ipa.cha.IClassHierarchy;
 import com.ibm.wala.ssa.SSAInstruction;
 import com.ibm.wala.ssa.SSAInstructionFactory;
 import com.ibm.wala.ssa.SSANewInstruction;
@@ -22,6 +23,45 @@ import static com.ibm.wala.ipa.callgraph.propagation.PropagationCallGraphBuilder
 
 public class UninitializedFieldState {
 
+  public static class AssignableTypeReferences {
+
+    private final Map<TypeReference, Set<TypeReference>> subReferences;
+    private final SubTypeHierarchy hierarchy;
+    private final Predicate<TypeReference> typeFilter;
+
+    AssignableTypeReferences(IClassHierarchy cha, Predicate<TypeReference> typeFilter) {
+      this.typeFilter = typeFilter;
+      subReferences = new HashMap<>();
+      hierarchy = new SubTypeHierarchy(cha);
+    }
+
+    AssignableTypeReferences(SubTypeHierarchy hierarchy, Predicate<TypeReference> typeFilter) {
+      this.typeFilter = typeFilter;
+      subReferences = new HashMap<>();
+      this.hierarchy = hierarchy;
+    }
+
+    /**
+     * Cached
+     */
+    public Set<TypeReference> getSuitableTypeReferences(TypeReference t) {
+      return subReferences.computeIfAbsent(t, tr -> {
+        Set<TypeReference> base = new HashSet<>();
+        Consumer<TypeReference> add = trr -> {
+          if (typeFilter.test(trr) && !trr.isPrimitiveType() && hierarchy.cha.lookupClass(trr) != null) {
+            base.add(trr);
+          }
+        };
+        add.accept(t);
+        return Stream.concat(base.stream(), base.stream().map(hierarchy::getSubTypes).flatMap(Set::stream)).collect(Collectors.toSet());
+      });
+    }
+
+    public SubTypeHierarchy getHierarchy() {
+      return hierarchy;
+    }
+  }
+
   /**
    * Log assignments, recordings and creations
    */
@@ -32,10 +72,9 @@ public class UninitializedFieldState {
    * Might be null
    */
   private final Map<PointerKey, TypeReference> recorded = new HashMap<>();
-  private final SubTypeHierarchy hierarchy;
   private final Map<TypeReference, Set<PointerKey>> keysPerType;
-  private final Map<TypeReference, Set<TypeReference>> subReferences;
   private final Map<PointerKey, CGNode> cgNodeMap;
+  private final AssignableTypeReferences assignableTypeReferences;
 
   /**
    * Keys with empty points to set. Only these pointer keys will be considered for assignments to generated pointer sets.
@@ -50,9 +89,8 @@ public class UninitializedFieldState {
       Map<TypeReference, Set<PointerKey>> keysPerType) {
     this.options = options;
     this.keysPerType = keysPerType;
-    this.subReferences = new HashMap<>();
-    this.hierarchy = hierarchy;
     this.cgNodeMap = new HashMap<>();
+    this.assignableTypeReferences = new AssignableTypeReferences(hierarchy, options::matchField);
   }
 
   public Set<PointerKey> getCreatedKeys(){
@@ -99,7 +137,7 @@ public class UninitializedFieldState {
 
   private void assignWoCheck(SSAPropagationCallGraphBuilder builder, PointerKey key, TypeReference type){
     log("Assign " + type.toString());
-    for (TypeReference t : getSuitableTypeReferences(type)) {
+    for (TypeReference t : assignableTypeReferences.getSuitableTypeReferences(type)) {
       for (PointerKey pointerKey : create(builder, t)) {
         builder.getPropagationSystem().newConstraint(key, assignOperator, pointerKey);
       }
@@ -152,28 +190,12 @@ public class UninitializedFieldState {
     }).filter(Objects::nonNull).collect(Collectors.toSet()));
   }
 
-  /**
-   * Cached
-   */
-  private Set<TypeReference> getSuitableTypeReferences(TypeReference t){
-    return subReferences.computeIfAbsent(t, tr -> {
-      Set<TypeReference> base = new HashSet<>();
-      Consumer<TypeReference> add = trr -> {
-        if (options.matchField(trr) && !trr.isPrimitiveType() && hierarchy.cha.lookupClass(trr) != null){
-          base.add(trr);
-        }
-      };
-      add.accept(t);
-      return Stream.concat(base.stream(), base.stream().map(hierarchy::getSubTypes).flatMap(Set::stream)).collect(Collectors.toSet());
-    });
-  }
-
   boolean match(TypeReference declaringType, TypeReference type){
     return options.matchField(declaringType, type);
   }
 
   public UninitializedFieldState createNew() {
-    return new UninitializedFieldState(options, hierarchy, keysPerType);
+    return new UninitializedFieldState(options, assignableTypeReferences.getHierarchy(), keysPerType);
   }
 
   /**
@@ -245,5 +267,13 @@ public class UninitializedFieldState {
       }
 
     };
+  }
+
+  /**
+   * Is there a non interface impl class for this field containing type
+   */
+  public boolean supports(IClassHierarchy cha, TypeReference fieldType) {
+    return assignableTypeReferences.getSuitableTypeReferences(fieldType).stream()
+        .map(cha::lookupClass).anyMatch(c -> !(c instanceof InterfaceImplementationClass));
   }
 }
