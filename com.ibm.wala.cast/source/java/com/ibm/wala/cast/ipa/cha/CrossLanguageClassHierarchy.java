@@ -10,31 +10,22 @@
  *****************************************************************************/
 package com.ibm.wala.cast.ipa.cha;
 
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
-
-import com.ibm.wala.classLoader.ClassLoaderFactory;
-import com.ibm.wala.classLoader.IClass;
-import com.ibm.wala.classLoader.IClassLoader;
-import com.ibm.wala.classLoader.IField;
-import com.ibm.wala.classLoader.IMethod;
-import com.ibm.wala.classLoader.Language;
+import com.ibm.wala.classLoader.*;
 import com.ibm.wala.ipa.callgraph.AnalysisScope;
 import com.ibm.wala.ipa.cha.ClassHierarchyException;
 import com.ibm.wala.ipa.cha.ClassHierarchyFactory;
 import com.ibm.wala.ipa.cha.IClassHierarchy;
-import com.ibm.wala.types.ClassLoaderReference;
-import com.ibm.wala.types.FieldReference;
-import com.ibm.wala.types.MethodReference;
-import com.ibm.wala.types.Selector;
-import com.ibm.wala.types.TypeReference;
+import com.ibm.wala.types.*;
 import com.ibm.wala.util.collections.ComposedIterator;
 import com.ibm.wala.util.collections.HashMapFactory;
 import com.ibm.wala.util.collections.HashSetFactory;
 import com.ibm.wala.util.debug.Assertions;
 import com.ibm.wala.util.strings.Atom;
+
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * This class hierarchy represents a family of disjoint class hierarchies, one
@@ -241,6 +232,10 @@ public class CrossLanguageClassHierarchy implements IClassHierarchy {
   @Override
   public boolean isAssignableFrom(IClass c1, IClass c2) {
     return getHierarchy(c1).isAssignableFrom(c1, c2);
+  }
+
+  @Override public void removeClass(IClass iClass) {
+    getHierarchy(iClass).removeClass(iClass);
   }
 
   @Override

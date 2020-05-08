@@ -10,20 +10,12 @@
  *******************************************************************************/
 package com.ibm.wala.ipa.cha;
 
+import com.ibm.wala.classLoader.*;
+import com.ibm.wala.ipa.callgraph.AnalysisScope;
+import com.ibm.wala.types.*;
+
 import java.util.Collection;
 import java.util.Set;
-
-import com.ibm.wala.classLoader.ClassLoaderFactory;
-import com.ibm.wala.classLoader.IClass;
-import com.ibm.wala.classLoader.IClassLoader;
-import com.ibm.wala.classLoader.IField;
-import com.ibm.wala.classLoader.IMethod;
-import com.ibm.wala.ipa.callgraph.AnalysisScope;
-import com.ibm.wala.types.ClassLoaderReference;
-import com.ibm.wala.types.FieldReference;
-import com.ibm.wala.types.MethodReference;
-import com.ibm.wala.types.Selector;
-import com.ibm.wala.types.TypeReference;
 
 /**
  * General interface for a type hierarchy
@@ -197,4 +189,9 @@ public interface IClassHierarchy extends Iterable<IClass> {
     }
     return null;
   }
+
+  /**
+   * Remove a class which has been previously added via addClass
+   */
+  void removeClass(IClass iClass);
 }

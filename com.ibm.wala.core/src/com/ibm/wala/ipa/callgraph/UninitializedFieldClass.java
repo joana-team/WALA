@@ -179,9 +179,7 @@ public class UninitializedFieldClass extends SyntheticClass {
 
   private static String generateHelperClassName(IClassHierarchy cha){
     Set<String> packageNames = new HashSet<>();
-    Iterator<IClass> iterator = cha.iterator();
-    while (iterator.hasNext()) {
-      IClass next =  iterator.next();
+    for (IClass next : cha) {
       Atom aPackage = next.getName().getPackage();
       if (aPackage != null) {
         packageNames.add(aPackage.toString());
@@ -211,7 +209,7 @@ public class UninitializedFieldClass extends SyntheticClass {
   /**
    * Add accesses to all fields that the classes of belonging to the fields have to the root method
    */
-  private void addAccessToFieldsOfFields(AbstractRootMethod root, Map<IClass, IField> fieldsPerClass){
+  private static void addAccessToFieldsOfFields(AbstractRootMethod root, Map<IClass, IField> fieldsPerClass){
     for (IClass klass : fieldsPerClass.keySet()) {
       IField klassField = fieldsPerClass.get(klass);
       int klassObj = root.addGetStatic(klassField.getReference());
@@ -221,14 +219,14 @@ public class UninitializedFieldClass extends SyntheticClass {
     }
   }
 
-  private void addAccessToField(AbstractRootMethod root, int klassObj, IField field){
-    int val; // TODO: correct?
+  private static void addAccessToField(AbstractRootMethod root, int klassObj, IField field){
+    int val;
     if (field.isStatic()){
       val = root.addGetStatic(field.getReference());
     } else {
       val = root.addGetInstance(field.getReference(), klassObj);
     }
-    root.addInvocation(new int[]{1}, CallSiteReference.make(0, MethodReference.findOrCreate(field.getFieldTypeReference(), MethodReference.finalizeSelector),
+    root.addInvocation(new int[]{val}, CallSiteReference.make(0, MethodReference.findOrCreate(field.getFieldTypeReference(), MethodReference.finalizeSelector),
         IInvokeInstruction.Dispatch.VIRTUAL));
   }
 

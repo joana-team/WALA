@@ -335,6 +335,9 @@ public abstract class AbstractRootMethod extends SyntheticMethod {
     return result;
   }
 
+  /**
+   * @param object -1 == this
+   */
   public int addGetInstance(FieldReference ref, int object) {
     int result = nextLocal++;
     statements.add(insts.GetInstruction(statements.size(), result, object, ref));

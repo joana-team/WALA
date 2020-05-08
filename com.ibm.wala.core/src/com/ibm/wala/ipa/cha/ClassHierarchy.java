@@ -10,39 +10,11 @@
  *******************************************************************************/
 package com.ibm.wala.ipa.cha;
 
-import java.io.IOException;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.ConcurrentModificationException;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
-
-import com.ibm.wala.classLoader.ArrayClass;
-import com.ibm.wala.classLoader.ClassLoaderFactory;
-import com.ibm.wala.classLoader.IClass;
-import com.ibm.wala.classLoader.IClassLoader;
-import com.ibm.wala.classLoader.IField;
-import com.ibm.wala.classLoader.IMethod;
-import com.ibm.wala.classLoader.Language;
-import com.ibm.wala.classLoader.ShrikeClass;
+import com.ibm.wala.classLoader.*;
 import com.ibm.wala.ipa.callgraph.AnalysisScope;
-import com.ibm.wala.types.ClassLoaderReference;
-import com.ibm.wala.types.FieldReference;
-import com.ibm.wala.types.MethodReference;
-import com.ibm.wala.types.Selector;
-import com.ibm.wala.types.TypeReference;
+import com.ibm.wala.types.*;
 import com.ibm.wala.util.MonitorUtil.IProgressMonitor;
-import com.ibm.wala.util.collections.HashMapFactory;
-import com.ibm.wala.util.collections.HashSetFactory;
-import com.ibm.wala.util.collections.Iterator2Collection;
-import com.ibm.wala.util.collections.Iterator2Iterable;
-import com.ibm.wala.util.collections.MapIterator;
-import com.ibm.wala.util.collections.MapUtil;
+import com.ibm.wala.util.collections.*;
 import com.ibm.wala.util.debug.Assertions;
 import com.ibm.wala.util.debug.UnimplementedError;
 import com.ibm.wala.util.ref.CacheReference;
@@ -50,6 +22,11 @@ import com.ibm.wala.util.ref.ReferenceCleanser;
 import com.ibm.wala.util.strings.Atom;
 import com.ibm.wala.util.warnings.Warning;
 import com.ibm.wala.util.warnings.Warnings;
+
+import java.io.IOException;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 
 /**
  * Simple implementation of a class hierarchy.
@@ -627,6 +604,10 @@ public class ClassHierarchy implements IClassHierarchy {
       map.put(klass.getReference(), result);
     }
     return result;
+  }
+
+  private void removeNodeIfPresent(IClass klass){
+    map.remove(klass.getReference());
   }
 
   @Override
@@ -1236,7 +1217,38 @@ public class ClassHierarchy implements IClassHierarchy {
     }
   }
 
-/** BEGIN Custom change: remember unresolved classes */
+  /**
+   * Remove a class which has been previously added via addClass
+   */
+  @Override public void removeClass(IClass klass) {
+    if (klass == null) {
+      throw new IllegalArgumentException("klass is null");
+    }
+    if (DEBUG) {
+      System.err.println(("Attempt to remove class " + klass));
+    }
+    Collection<IClass> loadedSuperInterfaces;
+    try {
+      loadedSuperInterfaces = klass.getAllImplementedInterfaces();
+    } catch (Exception e) {
+      throw new AssertionError();
+    }
+    Node node = findOrCreateNode(klass);
+
+    removeNodeIfPresent(klass);
+
+    if (klass.getSuperclass() != null){
+      findOrCreateNode(klass.getSuperclass()).children.remove(node);
+    }
+
+    if (loadedSuperInterfaces != null) {
+      for (IClass iface : loadedSuperInterfaces) {
+        MapUtil.findOrCreateSet(implementors, iface).remove(klass);
+      }
+    }
+  }
+
+  /** BEGIN Custom change: remember unresolved classes */
   private final Set<TypeReference> unresolved = HashSetFactory.make();
 
   @Override

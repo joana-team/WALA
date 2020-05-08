@@ -261,6 +261,7 @@ public abstract class PropagationCallGraphBuilder implements CallGraphBuilder<In
       throw new IllegalStateException("Could not create a entrypoint callsites: " +   Warnings.asString());
     }  
 /** END Custom change: throw exception on empty entry points. This is a severe issue that should not go undetected! */
+    InterfaceImplementationClass.removeAllInterfaceImplementationClasses(getClassHierarchy());
     options.getInterfaceImplOptions().createAndAddMultiple(root.getClassHierarchy().getRootClass().getClassLoader(),
         getClassHierarchy(), options);
     customInit();
