@@ -35,8 +35,9 @@ public class InterfaceImplementationClass extends SyntheticClass {
      *
      * @param klass  klass that the method is implemented in
      * @param method method to add body statements to
+     * @param origMethod implemented method
      */
-    void generate(InterfaceImplementationClass klass, AbstractRootMethod method);
+    void generate(InterfaceImplementationClass klass, AbstractRootMethod method, IMethod origMethod);
 
     /**
      * Generates a generic return statement that returns the value of an unitialized instance
@@ -50,7 +51,7 @@ public class InterfaceImplementationClass extends SyntheticClass {
       }
     }
 
-    FunctionBodyGenerator CONNECT_RETURN_WITH_PARAMS = (klass, method) -> {
+    FunctionBodyGenerator CONNECT_RETURN_WITH_PARAMS = (klass, method, origMethod) -> {
       if (!method.returnsVoid()) {
         int ret = klass.addLoadForType(method, method.getReturnType());
         IntStream.range(0, method.getNumberOfParameters()).forEach(i -> {
@@ -129,7 +130,7 @@ public class InterfaceImplementationClass extends SyntheticClass {
       }
     }) {
       {
-        generator.generate(InterfaceImplementationClass.this, this);
+        generator.generate(InterfaceImplementationClass.this, this, method);
       }
 
       @Override public boolean isStatic() {

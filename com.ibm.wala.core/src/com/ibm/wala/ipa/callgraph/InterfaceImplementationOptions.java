@@ -95,7 +95,7 @@ public class InterfaceImplementationOptions {
   }
 
   public static InterfaceImplementationOptions createEmpty() {
-    return new InterfaceImplementationOptions(Collections.emptyList(), (a, b) -> {}, Mode.PER_INSTANCE, true);
+    return new InterfaceImplementationOptions(Collections.emptyList(), (a, b, c) -> {}, Mode.PER_INSTANCE, true);
   }
 
   public boolean isAllImplementedInSameClass() {
