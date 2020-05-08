@@ -24,11 +24,26 @@ public class InterfaceImplementationOptions {
 
   /**
    * Mode of pointer key generation for an object of a specific type
-   * required in the body of an interface method implementation
+   * required in the body of an interface method implementation.
+   *
+   * Progresses in conservativity
    */
   public static enum Mode {
+    /**
+     * Generate a new key every time one is requested
+     */
+    PER_KEY,
+    /**
+     * Create a new key for each type and each instance
+     */
     PER_INSTANCE,
+    /**
+     * Create a new key each type and all instances together
+     */
     PER_TYPE,
+    /**
+     * Just use the unitialized field helper
+     */
     USE_UNINITIALIZED_FIELD_HELPER
   }
 
@@ -49,6 +64,11 @@ public class InterfaceImplementationOptions {
   private final boolean implementInSameClass;
 
   private InterfaceImplementationState state;
+
+  public InterfaceImplementationOptions(List<String> interfacesToImplement,
+      InterfaceImplementationClass.FunctionBodyGenerator generator){
+    this(interfacesToImplement, generator, Mode.PER_KEY, false);
+  }
 
   public InterfaceImplementationOptions(List<String> interfacesToImplement,
       InterfaceImplementationClass.FunctionBodyGenerator generator, Mode mode, boolean implementInSameClass) {

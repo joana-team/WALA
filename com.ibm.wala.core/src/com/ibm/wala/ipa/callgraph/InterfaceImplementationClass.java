@@ -330,9 +330,11 @@ public class InterfaceImplementationClass extends SyntheticClass {
    */
   public void assign(SSAPropagationCallGraphBuilder builder, UninitializedFieldState state, PointerKey instance, PointerKey key,
       TypeReference type) {
-    if (implOptions.getMode() == InterfaceImplementationOptions.Mode.USE_UNINITIALIZED_FIELD_HELPER) {
+    switch (implOptions.getMode()){
+    case USE_UNINITIALIZED_FIELD_HELPER:
       state.assign(builder, key); // might crash
-    } else {
+      break;
+    case PER_TYPE:
       if (implOptions.getMode() == InterfaceImplementationOptions.Mode.PER_TYPE) {
         // use only a single instance
         if (firstInstance == null) {
@@ -341,8 +343,16 @@ public class InterfaceImplementationClass extends SyntheticClass {
           instance = firstInstance; // easier that keeping two different maps around
         }
       }
+    case PER_INSTANCE:
       for (TypeReference t : assignableTypeReferences.getSuitableTypeReferences(type)) {
         for (PointerKey pointerKey : create(builder, instance, t)) {
+          builder.getPropagationSystem().newConstraint(key, assignOperator, pointerKey);
+        }
+      }
+      break;
+    case PER_KEY:
+      for (TypeReference t : assignableTypeReferences.getSuitableTypeReferences(type)) {
+        for (PointerKey pointerKey : createKeys(builder, t)) {
           builder.getPropagationSystem().newConstraint(key, assignOperator, pointerKey);
         }
       }
@@ -350,43 +360,47 @@ public class InterfaceImplementationClass extends SyntheticClass {
   }
 
   private Set<PointerKey> create(SSAPropagationCallGraphBuilder builder, PointerKey instance, TypeReference ref) {
-    PropagationSystem system = builder.getPropagationSystem();
     return keysPerKeyPerType.computeIfAbsent(ref, r -> new HashMap<>())
-        .computeIfAbsent(instance, rr -> IntStream.range(0, implOptions.getCount()).mapToObj(r -> {
-          NewSiteReference site = new NewTypedSiteReference(1, ref);
-          CGNode constructorNode = null;   // allocate in the context of the constructor, TODO: correct?
-          try {
-            constructorNode = builder.getCallGraph()
-                .findOrCreateNode(constructor, builder.getCallGraph().getFakeRootNode().getContext());
-          } catch (CancelException e) { // should not occur
-            throw new RuntimeException(e);
-          }
+        .computeIfAbsent(instance, rr -> createKeys(builder, ref));
+  }
 
-          IClass klass = getClassHierarchy().lookupClass(ref); // lookup the class that we want to create a key for
-          if (klass == null || klass.isInterface() || klass.isAbstract()) {
-            return null;
-          }
-          InstanceKey iKey;
-          if (klass.isArrayClass()) {
-            iKey = new NormalAllocationInNode(constructorNode, site, klass);
-          } else {
-            iKey = builder.getInstanceKeyForAllocation(constructorNode, site);
-          }
-          if (iKey == null) { // abstract
-            return null;
-          }
-          site.setInstanceKey(iKey);
-          PointerKey def = builder.getPointerKeyForLocal(constructorNode, Integer.MAX_VALUE - r);
-          system.newConstraint(def, iKey);
+  private Set<PointerKey> createKeys(SSAPropagationCallGraphBuilder builder, TypeReference ref){
+    PropagationSystem system = builder.getPropagationSystem();
+    return IntStream.range(0, implOptions.getCount()).mapToObj(r -> {
+      NewSiteReference site = new NewTypedSiteReference(1, ref);
+      CGNode constructorNode = null;   // allocate in the context of the constructor, TODO: correct?
+      try {
+        constructorNode = builder.getCallGraph()
+            .findOrCreateNode(constructor, builder.getCallGraph().getFakeRootNode().getContext());
+      } catch (CancelException e) { // should not occur
+        throw new RuntimeException(e);
+      }
 
-          SSAPropagationCallGraphBuilder.ConstraintVisitor constraintVisitor = new SSAPropagationCallGraphBuilder.ConstraintVisitor(
-              builder, constructorNode);
-          constraintVisitor.visitNew(new SSANewInstruction(0, Integer.MAX_VALUE, site) {
-            @Override public SSAInstruction copyForSSA(SSAInstructionFactory ints, int[] defs, int[] uses) {
-              return super.copyForSSA(ints, defs, uses);
-            }
-          });
-          return def;
-        }).filter(Objects::nonNull).collect(Collectors.toSet()));
+      IClass klass = getClassHierarchy().lookupClass(ref); // lookup the class that we want to create a key for
+      if (klass == null || klass.isInterface() || klass.isAbstract()) {
+        return null;
+      }
+      InstanceKey iKey;
+      if (klass.isArrayClass()) {
+        iKey = new NormalAllocationInNode(constructorNode, site, klass);
+      } else {
+        iKey = builder.getInstanceKeyForAllocation(constructorNode, site);
+      }
+      if (iKey == null) { // abstract
+        return null;
+      }
+      site.setInstanceKey(iKey);
+      PointerKey def = builder.getPointerKeyForLocal(constructorNode, Integer.MAX_VALUE - r);
+      system.newConstraint(def, iKey);
+
+      SSAPropagationCallGraphBuilder.ConstraintVisitor constraintVisitor = new SSAPropagationCallGraphBuilder.ConstraintVisitor(
+          builder, constructorNode);
+      constraintVisitor.visitNew(new SSANewInstruction(0, Integer.MAX_VALUE, site) {
+        @Override public SSAInstruction copyForSSA(SSAInstructionFactory ints, int[] defs, int[] uses) {
+          return super.copyForSSA(ints, defs, uses);
+        }
+      });
+      return def;
+    }).filter(Objects::nonNull).collect(Collectors.toSet());
   }
 }
