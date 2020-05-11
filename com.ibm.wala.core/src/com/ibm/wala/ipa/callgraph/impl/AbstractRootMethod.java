@@ -19,8 +19,7 @@ import com.ibm.wala.ipa.callgraph.IAnalysisCacheView;
 import com.ibm.wala.ipa.callgraph.propagation.rta.RTAContextInterpreter;
 import com.ibm.wala.ipa.cha.IClassHierarchy;
 import com.ibm.wala.ipa.summaries.SyntheticIR;
-import com.ibm.wala.shrikeBT.IConditionalBranchInstruction;
-import com.ibm.wala.shrikeBT.IInvokeInstruction;
+import com.ibm.wala.shrikeBT.*;
 import com.ibm.wala.ssa.*;
 import com.ibm.wala.types.FieldReference;
 import com.ibm.wala.types.MethodReference;
@@ -304,6 +303,24 @@ public abstract class AbstractRootMethod extends SyntheticMethod {
       constant2ValueNumber.put(v, result);
     }
     return result;
+  }
+
+  public void addBinaryInstruction(BinaryOpInstruction.Operator operator, int res, int op1, int op2){
+    statements.add(insts.BinaryOpInstruction(statements.size(), operator, false, false, res, op1, op2, true));
+  }
+
+  public int addBinaryInstruction(BinaryOpInstruction.Operator operator, int op1, int op2){
+    int res = addLocal();
+    statements.add(insts.BinaryOpInstruction(statements.size(), operator, false, false, res, op1, op2, true));
+    return res;
+  }
+
+  public void addConditionalBranchInstruction(IConditionalBranchInstruction.Operator op, TypeReference type, int op1, int op2, Runnable elseBranch) {
+    int condIndex = statements.size() - 1;
+    statements.add(null);
+    elseBranch.run();
+    statements.set(condIndex, insts
+        .ConditionalBranchInstruction(statements.size(), op, type, op1, op2, statements.size()));
   }
 
   /**

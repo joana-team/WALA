@@ -6,6 +6,7 @@ import com.ibm.wala.ipa.callgraph.impl.AbstractRootMethod;
 import com.ibm.wala.ipa.callgraph.impl.Everywhere;
 import com.ibm.wala.ipa.callgraph.propagation.*;
 import com.ibm.wala.ipa.cha.IClassHierarchy;
+import com.ibm.wala.shrikeBT.IInvokeInstruction;
 import com.ibm.wala.shrikeCT.ClassConstants;
 import com.ibm.wala.ssa.*;
 import com.ibm.wala.types.FieldReference;
@@ -403,5 +404,16 @@ public class InterfaceImplementationClass extends SyntheticClass {
       });
       return def;
     }).filter(Objects::nonNull).collect(Collectors.toSet());
+  }
+
+  public SSAInvokeInstruction addInvocation(AbstractRootMethod method, IMethod target, int[] parameters){
+    IInvokeInstruction.IDispatch mode = IInvokeInstruction.Dispatch.STATIC;
+    IClass klass = target.getDeclaringClass();
+    if (klass.isInterface()){
+      mode = IInvokeInstruction.Dispatch.INTERFACE;
+    } else if (!target.isStatic()){
+      mode = IInvokeInstruction.Dispatch.VIRTUAL;
+    }
+    return method.addInvocation(parameters, CallSiteReference.make(0, target.getReference(), mode));
   }
 }
