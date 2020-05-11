@@ -150,7 +150,7 @@ public class InterfaceImplementationClass extends SyntheticClass {
 
   private IField createField(String name, TypeReference type) {
     return new FieldImpl(this, FieldReference.findOrCreate(getReference(), Atom.findOrCreateUnicodeAtom(name), type),
-        ClassConstants.ACC_PUBLIC, Collections.emptyList());
+        ClassConstants.ACC_PUBLIC | ClassConstants.ACC_STATIC, Collections.emptyList());
   }
 
   private IMethod createConstructor(TypeReference t) {
@@ -234,11 +234,11 @@ public class InterfaceImplementationClass extends SyntheticClass {
   }
 
   @Override public Collection<IField> getAllInstanceFields() {
-    return fieldForType.values();
+    return Collections.emptyList();
   }
 
   @Override public Collection<IField> getAllStaticFields() {
-    return Collections.emptyList();
+    return fieldForType.values();
   }
 
   @Override public Collection<IField> getAllFields() {
@@ -250,11 +250,11 @@ public class InterfaceImplementationClass extends SyntheticClass {
   }
 
   @Override public Collection<IField> getDeclaredInstanceFields() {
-    return Collections.emptyList();
+    return getAllFields();
   }
 
   @Override public Collection<IField> getDeclaredStaticFields() {
-    return getAllFields();
+    return Collections.emptyList();
   }
 
   @Override public boolean isReferenceType() {
@@ -320,7 +320,7 @@ public class InterfaceImplementationClass extends SyntheticClass {
   }
 
   public int addLoadForType(AbstractRootMethod method, TypeReference type) {
-    return method.addGetInstance(getField(type).getReference(), -1);
+    return method.addGetStatic(getField(type).getReference());
   }
 
   private final Map<TypeReference, Map<PointerKey, Set<PointerKey>>> keysPerKeyPerType = new HashMap<>();
