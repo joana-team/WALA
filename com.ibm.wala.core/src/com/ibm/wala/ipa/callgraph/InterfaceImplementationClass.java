@@ -264,8 +264,8 @@ public class InterfaceImplementationClass extends SyntheticClass {
   private static InterfaceImplementationClass createAndAdd(IClassLoader classLoader, IClassHierarchy cha, AnalysisOptions options,
       InterfaceImplementationOptions implOptions, List<String> implementedInterfaces, FunctionBodyGenerator generator) {
     InterfaceImplementationClass klass = new InterfaceImplementationClass(
-        TypeReference.findOrCreate(classLoader.getReference(), generateClassName(cha)), cha, options, implOptions,
-        implementedInterfaces, generator);
+        TypeReference.findOrCreate(classLoader.getReference(), generateClassName(cha, String.join("", implementedInterfaces))),
+        cha, options, implOptions, implementedInterfaces, generator);
     cha.addClass(klass);
     return klass;
   }
@@ -306,11 +306,11 @@ public class InterfaceImplementationClass extends SyntheticClass {
 
   private static int lastClassNum = -1;
 
-  private static String generateClassName(IClassHierarchy cha) {
+  private static String generateClassName(IClassHierarchy cha, String baseName) {
     String suggestedName;
     do {
       lastClassNum++;
-      suggestedName = "interfacehelper.Helper" + lastClassNum;
+      suggestedName = "interfacehelper." + baseName + lastClassNum;
     } while (cha.lookupClass(suggestedName) != null);
     return suggestedName;
   }
