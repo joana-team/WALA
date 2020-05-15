@@ -345,6 +345,7 @@ public class InterfaceImplementationClass extends SyntheticClass {
           instance = firstInstance; // easier that keeping two different maps around
         }
       }
+      //$FALL-THROUGH$
     case PER_INSTANCE:
       for (TypeReference t : assignableTypeReferences.getSuitableTypeReferences(type)) {
         for (PointerKey pointerKey : create(builder, instance, t)) {
@@ -358,6 +359,9 @@ public class InterfaceImplementationClass extends SyntheticClass {
           builder.getPropagationSystem().newConstraint(key, assignOperator, pointerKey);
         }
       }
+      break;
+    default:
+      break;
     }
   }
 
