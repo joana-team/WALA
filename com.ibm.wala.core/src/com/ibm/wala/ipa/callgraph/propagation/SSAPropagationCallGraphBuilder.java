@@ -944,10 +944,9 @@ public abstract class SSAPropagationCallGraphBuilder extends PropagationCallGrap
           if (getBuilder().uninitializedFieldState.shouldAssign(def)){
             InterfaceImplementationState implState = getBuilder().getOptions().getInterfaceImplOptions().getState();
             if (implState.hasImplementationFor(f.getReference().getDeclaringClass())){ // interface impl specific
-              InterfaceImplementationClass impl = implState.getImplementation(f.getReference().getFieldType());
+              InterfaceImplementationClass impl = implState.getImplementation(f.getReference().getDeclaringClass());
               impl.assign(builder, getBuilder().uninitializedFieldState, refKey, def, f.getReference().getFieldType());
-            }
-            if (getBuilder().uninitializedFieldState.supports(getClassHierarchy(), f.getReference().getDeclaringClass())) {
+            } else if (getBuilder().uninitializedFieldState.supports(getClassHierarchy(), f.getReference().getDeclaringClass())) {
               // only use it when there are implementations of the interface/class that are not interface impls
               getBuilder().uninitializedFieldState.assign(builder, def);
             }

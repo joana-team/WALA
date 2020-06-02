@@ -262,7 +262,7 @@ public abstract class PropagationCallGraphBuilder implements CallGraphBuilder<In
     }  
 /** END Custom change: throw exception on empty entry points. This is a severe issue that should not go undetected! */
     InterfaceImplementationClass.removeAllInterfaceImplementationClasses(getClassHierarchy());
-    options.getInterfaceImplOptions().createAndAddMultiple(root.getClassHierarchy().getRootClass().getClassLoader(),
+    options.getInterfaceImplOptions().createAndAddMultiple(options.getEntrypoints().iterator().next().getMethod().getDeclaringClass().getClassLoader(),
         getClassHierarchy(), options);
     customInit();
 

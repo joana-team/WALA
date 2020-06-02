@@ -47,6 +47,15 @@ public class UninitializedFieldHelperOptions {
      */
     boolean matchType(TypeReference typeReference);
 
+    /*
+     * @param pkg java package name (e.g. {@code org.foo})
+     * @return does the passed type reference point to class in the passed package (a class {@code org.foo.bla.T} matches {@code org})?
+     */
+    static boolean matchesPackage(TypeReference typeReference, String pkg){
+      String tPkg = String.join(".", typeReference.getName().getPackage().toString().split("/"));
+      return tPkg.equals(pkg) || tPkg.startsWith(pkg + ".");
+    }
+
     /**
      *
      * @param typeReference is not an array type

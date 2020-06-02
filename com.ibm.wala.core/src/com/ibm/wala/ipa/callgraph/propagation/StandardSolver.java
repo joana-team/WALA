@@ -45,6 +45,7 @@ public class StandardSolver extends AbstractPointsToSolver {
 
       solveImplWithUninitializedKeys(monitor, uninitializedFieldState, discoveredNodes);
       while (uninitializedFieldState.hasKeyWithEmptySet()) {
+        //System.out.println(uninitializedFieldState.getKeysWithEmptySet());
         // start a new run over all nodes, in case we missed an affected node
         getSystem().initForFirstSolve();
         solveImplWithUninitializedKeys(monitor, uninitializedFieldState, discoveredNodes);
@@ -53,10 +54,6 @@ public class StandardSolver extends AbstractPointsToSolver {
         }
         // we did collect something new, use this information
         solveImplWithUninitializedKeys(monitor, uninitializedFieldState, discoveredNodes);
-      }
-
-      if (!uninitializedFieldState.getKeysWithEmptySet().isEmpty()) {
-        solve(monitor);
       }
     }
   }

@@ -59,7 +59,7 @@ public class UninitializedFieldClass extends SyntheticClass {
 
   private IMethod createConstructor(TypeReference t){
     AbstractRootMethod constructor =
-        new AbstractRootMethod(MethodReference.findOrCreate(t, "<init>", "(" + t.getName().toString() + ")V"), this,
+        new AbstractRootMethod(MethodReference.findOrCreate(t, "<init>", "(" + t.getName().toString() + ";)V"), this,
           this.getClassHierarchy(), options, new IAnalysisCacheView(){
 
       @Override public void invalidate(IMethod method, Context C) {
@@ -187,9 +187,9 @@ public class UninitializedFieldClass extends SyntheticClass {
     }
     String suggestedPkgName = "fieldhelper";
     while (packageNames.contains(suggestedPkgName)){
-      suggestedPkgName += ".fieldhelper";
+      suggestedPkgName += "/fieldhelper";
     }
-    return suggestedPkgName + ".FieldHelper";
+    return "L" + suggestedPkgName + "/FieldHelper";
   }
 
   /**

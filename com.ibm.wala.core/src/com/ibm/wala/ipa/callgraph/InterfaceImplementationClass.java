@@ -17,6 +17,9 @@ import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.strings.Atom;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -27,6 +30,8 @@ import static com.ibm.wala.ipa.callgraph.propagation.PropagationCallGraphBuilder
  * Allows to implement an interface with a dummy class
  *
  * Parameters in byte code start at index 1
+ *
+ * Only works in correspondence with the unitialized field helper
  */
 public class InterfaceImplementationClass extends SyntheticClass {
 
@@ -99,8 +104,15 @@ public class InterfaceImplementationClass extends SyntheticClass {
     return new HashSet<>(cha.lookupClass(implementedInterface).getAllMethods());
   }
 
+  public static <T> Predicate<T> distinctByKey(Function<? super T, ?> keyExtractor) {
+    // https://stackoverflow.com/a/27872852
+    Set<Object> seen = ConcurrentHashMap.newKeySet();
+    return t -> seen.add(keyExtractor.apply(t));
+  }
+
   private Map<Selector, IMethod> generateMethods(Set<IMethod> methods) {
-    return methods.stream().map(this::generateMethod).collect(Collectors.toMap(IMethod::getSelector, m -> m));
+    return methods.stream().map(this::generateMethod).filter(distinctByKey(IMethod::getSelector))
+        .collect(Collectors.toMap(IMethod::getSelector, m -> m));
   }
 
   private IMethod generateMethod(IMethod method) {
@@ -310,7 +322,7 @@ public class InterfaceImplementationClass extends SyntheticClass {
     String suggestedName;
     do {
       lastClassNum++;
-      suggestedName = "interfacehelper." + baseName + lastClassNum;
+      suggestedName = "Linterfacehelper/" + baseName + lastClassNum;
     } while (cha.lookupClass(suggestedName) != null);
     return suggestedName;
   }
