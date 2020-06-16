@@ -295,14 +295,21 @@ public class InterfaceImplementationClass extends SyntheticClass {
     if (implOptions.isEmpty()){
       return new InterfaceImplementationState(Collections.emptyMap());
     }
+    Function<String, TypeReference> getRefAndCheck = i -> {
+      IClass klass = cha.lookupClass(i);
+      if (!klass.isInterface()){
+        throw new UnsupportedOperationException(String.format("%s is not an interface", klass.getReference().getName().toString()));
+      }
+      return klass.getReference();
+    };
     if (implOptions.isAllImplementedInSameClass()) {
       InterfaceImplementationClass klass = createAndAdd(classLoader, cha, options, implOptions,
           implOptions.getInterfacesToImplement(), implOptions.getGenerator());
       return new InterfaceImplementationState(
-          implOptions.getInterfacesToImplement().stream().collect(Collectors.toMap(i -> cha.lookupClass(i).getReference(), i -> klass)));
+          implOptions.getInterfacesToImplement().stream().collect(Collectors.toMap(getRefAndCheck::apply, i -> klass)));
     }
     return new InterfaceImplementationState(implOptions.getInterfacesToImplement().stream().collect(
-        Collectors.toMap(i -> cha.lookupClass(i).getReference(),
+        Collectors.toMap(getRefAndCheck::apply,
         i -> createAndAdd(classLoader, cha, options, implOptions, Collections.singletonList(i), implOptions.getGenerator()))));
   }
 
